@@ -1,26 +1,396 @@
 @import "tailwindcss";
 
+/* =========================================================
+   ELASI - Global Design Foundation
+   ========================================================= */
+
+/* ---------------------------------------------------------
+   1. Design Tokens
+   --------------------------------------------------------- */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Brand colors */
+  --elasi-green: #152a24;
+  --elasi-gold: #b8945a;
+  --elasi-ivory: #f8f4ec;
+
+  /* Neutral colors */
+  --elasi-text: #171717;
+  --elasi-muted: #6e6a62;
+  --elasi-white: #ffffff;
+  --elasi-black: #000000;
+
+  /* Borders */
+  --elasi-border: rgba(21, 42, 36, 0.12);
+  --elasi-border-strong: rgba(21, 42, 36, 0.2);
+
+  /* Surfaces */
+  --elasi-surface: #ffffff;
+  --elasi-surface-soft: #f3efe7;
+
+  /* Feedback */
+  --elasi-success: #276749;
+  --elasi-warning: #9c6b1a;
+  --elasi-danger: #a83232;
+
+  /* Typography */
+  --elasi-font-sans: "Peyda", Tahoma, Arial, sans-serif;
+  --elasi-font-serif: Georgia, "Times New Roman", serif;
+
+  /* Layout */
+  --elasi-container: 1200px;
+  --elasi-page-padding: 24px;
+
+  /* Spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+  --space-28: 112px;
+
+  /* Radius */
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --radius-pill: 999px;
+
+  /* Shadows */
+  --shadow-soft: 0 12px 32px rgba(23, 23, 23, 0.06);
+  --shadow-medium: 0 18px 48px rgba(23, 23, 23, 0.1);
+
+  /* Motion */
+  --transition-fast: 160ms ease;
+  --transition-base: 240ms ease;
+
+  /* Layering */
+  --z-header: 100;
+  --z-drawer: 200;
+  --z-modal: 300;
+  --z-toast: 400;
 }
+
+/* ---------------------------------------------------------
+   2. Tailwind Theme Mapping
+   --------------------------------------------------------- */
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-elasi-green: var(--elasi-green);
+  --color-elasi-gold: var(--elasi-gold);
+  --color-elasi-ivory: var(--elasi-ivory);
+  --color-elasi-text: var(--elasi-text);
+  --color-elasi-muted: var(--elasi-muted);
+  --color-elasi-white: var(--elasi-white);
+
+  --font-sans: var(--elasi-font-sans);
+  --font-serif: var(--elasi-font-serif);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ---------------------------------------------------------
+   3. CSS Reset
+   --------------------------------------------------------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  min-height: 100%;
+  background: var(--elasi-ivory);
+  scroll-behavior: smooth;
+  color-scheme: light;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+
+  background: var(--elasi-ivory);
+  color: var(--elasi-text);
+
+  font-family: var(--elasi-font-sans);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.8;
+
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+figure,
+blockquote,
+dl,
+dd {
+  margin: 0;
+}
+
+ul,
+ol {
+  margin: 0;
+  padding: 0;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button {
+  color: inherit;
+}
+
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+img {
+  height: auto;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ---------------------------------------------------------
+   4. Global Typography
+   --------------------------------------------------------- */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: var(--elasi-text);
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: clamp(2rem, 4vw, 3.5rem);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+h2 {
+  font-size: clamp(1.625rem, 3vw, 2.5rem);
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+h3 {
+  font-size: clamp(1.25rem, 2vw, 1.5rem);
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+::selection {
+  background: var(--elasi-green);
+  color: var(--elasi-white);
+}
+
+/* ---------------------------------------------------------
+   5. Accessibility
+   --------------------------------------------------------- */
+
+:focus-visible {
+  outline: 2px solid var(--elasi-gold);
+  outline-offset: 4px;
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+.sr-only {
+  position: absolute;
+
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------------------------------------------------------
+   6. Layout Utilities
+   --------------------------------------------------------- */
+
+.elasi-container {
+  width: min(
+    calc(100% - (var(--elasi-page-padding) * 2)),
+    var(--elasi-container)
+  );
+
+  margin-inline: auto;
+}
+
+.elasi-section {
+  padding-block: var(--space-24);
+}
+
+/* ---------------------------------------------------------
+   7. Base Interactive Styles
+   --------------------------------------------------------- */
+
+.elasi-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+
+  color: var(--elasi-green);
+  font-weight: 500;
+
+  transition: color var(--transition-fast);
+}
+
+.elasi-link:hover {
+  color: var(--elasi-gold);
+}
+
+.elasi-button {
+  display: inline-flex;
+  min-height: 48px;
+
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+
+  padding: 12px 28px;
+
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+
+  cursor: pointer;
+
+  font-weight: 600;
+  line-height: 1;
+
+  transition:
+    background-color var(--transition-base),
+    border-color var(--transition-base),
+    color var(--transition-base),
+    transform var(--transition-base);
+}
+
+.elasi-button:active {
+  transform: translateY(1px);
+}
+
+.elasi-button--primary {
+  background: var(--elasi-green);
+  color: var(--elasi-white);
+}
+
+.elasi-button--primary:hover {
+  background: var(--elasi-gold);
+}
+
+.elasi-button--secondary {
+  border-color: var(--elasi-green);
+  background: transparent;
+  color: var(--elasi-green);
+}
+
+.elasi-button--secondary:hover {
+  border-color: var(--elasi-gold);
+  color: var(--elasi-gold);
+}
+
+/* ---------------------------------------------------------
+   8. Responsive Foundation
+   --------------------------------------------------------- */
+
+@media (max-width: 1024px) {
+  :root {
+    --elasi-page-padding: 20px;
+  }
+
+  .elasi-section {
+    padding-block: var(--space-20);
+  }
+}
+
+@media (max-width: 768px) {
+  :root {
+    --elasi-page-padding: 16px;
+  }
+
+  .elasi-section {
+    padding-block: var(--space-16);
+  }
+}
+
+@media (max-width: 430px) {
+  :root {
+    --elasi-page-padding: 12px;
+  }
+
+  body {
+    font-size: 15px;
+  }
+
+  .elasi-section {
+    padding-block: var(--space-12);
+  }
+}
+
+/* ---------------------------------------------------------
+   9. Reduced Motion
+   --------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
