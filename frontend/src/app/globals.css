@@ -34,7 +34,7 @@
   --elasi-danger: #a83232;
 
   /* Typography */
-  --elasi-font-sans: "Peyda", Tahoma, Arial, sans-serif;
+ --elasi-font-sans: var(--font-peyda), Tahoma, Arial, sans-serif;
   --elasi-font-serif: Georgia, "Times New Roman", serif;
 
   /* Layout */
