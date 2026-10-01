@@ -2,39 +2,18 @@
 
 import { Heart, UserRound, X } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
+
+import {
+  isNavigationItemActive,
+  navigationItems,
+} from "./navigation-items";
 
 type MobileNavigationDrawerProps = {
   isOpen: boolean;
   onClose: () => void;
 };
-
-const navigationItems = [
-  {
-    label: "خانه",
-    href: "/",
-  },
-  {
-    label: "فروشگاه",
-    href: "/shop",
-  },
-  {
-    label: "زنانه",
-    href: "/women",
-  },
-  {
-    label: "مردانه",
-    href: "/men",
-  },
-  {
-    label: "مجله",
-    href: "/blog",
-  },
-  {
-    label: "درباره ما",
-    href: "/about",
-  },
-] as const;
 
 const focusableElementsSelector = [
   'a[href]',
@@ -49,6 +28,8 @@ export function MobileNavigationDrawer({
   isOpen,
   onClose,
 }: MobileNavigationDrawerProps) {
+  const pathname = usePathname();
+
   const drawerRef = useRef<HTMLElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -58,6 +39,7 @@ export function MobileNavigationDrawer({
     }
 
     const previousOverflow = document.body.style.overflow;
+
     const previouslyFocusedElement =
       document.activeElement instanceof HTMLElement
         ? document.activeElement
@@ -111,6 +93,7 @@ export function MobileNavigationDrawer({
     }
 
     document.body.style.overflow = "hidden";
+
     window.addEventListener("keydown", handleKeyDown);
 
     const focusFrame = window.requestAnimationFrame(() => {
@@ -119,8 +102,11 @@ export function MobileNavigationDrawer({
 
     return () => {
       window.cancelAnimationFrame(focusFrame);
+
       document.body.style.overflow = previousOverflow;
+
       window.removeEventListener("keydown", handleKeyDown);
+
       previouslyFocusedElement?.focus();
     };
   }, [isOpen, onClose]);
@@ -159,6 +145,7 @@ export function MobileNavigationDrawer({
             <Link
               href="/"
               onClick={onClose}
+              aria-label="صفحه اصلی ELASI"
               className="text-lg font-semibold tracking-[0.18em] text-elasi-green"
             >
               ELASI
@@ -171,7 +158,11 @@ export function MobileNavigationDrawer({
               onClick={onClose}
               className="flex size-11 items-center justify-center rounded-full text-elasi-green transition-colors hover:bg-elasi-green/5 hover:text-elasi-gold"
             >
-              <X size={21} strokeWidth={1.7} aria-hidden="true" />
+              <X
+                size={21}
+                strokeWidth={1.7}
+                aria-hidden="true"
+              />
             </button>
           </div>
 
@@ -180,17 +171,38 @@ export function MobileNavigationDrawer({
             className="flex-1 overflow-y-auto px-5 py-6"
           >
             <ul className="flex flex-col">
-              {navigationItems.map((item) => (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    onClick={onClose}
-                    className="flex min-h-12 items-center border-b border-elasi-green/8 text-base font-medium text-elasi-text transition-colors hover:text-elasi-gold"
-                  >
-                    {item.label}
-                  </Link>
-                </li>
-              ))}
+              {navigationItems.map((item) => {
+                const isActive = isNavigationItemActive(
+                  pathname,
+                  item.href,
+                );
+
+                return (
+                  <li key={item.href}>
+                    <Link
+                      href={item.href}
+                      onClick={onClose}
+                      aria-current={isActive ? "page" : undefined}
+                      className={`relative flex min-h-12 items-center border-b border-elasi-green/8 pr-3 text-base font-medium transition-colors ${
+                        isActive
+                          ? "text-elasi-gold"
+                          : "text-elasi-text hover:text-elasi-gold"
+                      }`}
+                    >
+                      <span
+                        aria-hidden="true"
+                        className={`absolute right-0 h-5 w-px bg-elasi-gold transition-opacity duration-200 ${
+                          isActive
+                            ? "opacity-100"
+                            : "opacity-0"
+                        }`}
+                      />
+
+                      {item.label}
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
 
             <div className="mt-8 border-t border-elasi-green/10 pt-5">
@@ -204,6 +216,7 @@ export function MobileNavigationDrawer({
                   strokeWidth={1.7}
                   aria-hidden="true"
                 />
+
                 حساب کاربری
               </Link>
 
@@ -217,6 +230,7 @@ export function MobileNavigationDrawer({
                   strokeWidth={1.7}
                   aria-hidden="true"
                 />
+
                 علاقه‌مندی‌ها
               </Link>
             </div>

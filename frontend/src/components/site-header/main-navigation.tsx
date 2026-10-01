@@ -1,46 +1,45 @@
-import Link from "next/link";
+"use client";
 
-const navigationItems = [
-  {
-    label: "خانه",
-    href: "/",
-  },
-  {
-    label: "فروشگاه",
-    href: "/shop",
-  },
-  {
-    label: "زنانه",
-    href: "/women",
-  },
-  {
-    label: "مردانه",
-    href: "/men",
-  },
-  {
-    label: "مجله",
-    href: "/blog",
-  },
-  {
-    label: "درباره ما",
-    href: "/about",
-  },
-] as const;
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+
+import {
+  isNavigationItemActive,
+  navigationItems,
+} from "./navigation-items";
 
 export function MainNavigation() {
+  const pathname = usePathname();
+
   return (
     <nav aria-label="ناوبری اصلی">
       <ul className="flex items-center gap-7">
-        {navigationItems.map((item) => (
-          <li key={item.href}>
-            <Link
-              href={item.href}
-              className="text-body-sm font-medium text-elasi-text transition-colors hover:text-elasi-gold"
-            >
-              {item.label}
-            </Link>
-          </li>
-        ))}
+        {navigationItems.map((item) => {
+          const isActive = isNavigationItemActive(pathname, item.href);
+
+          return (
+            <li key={item.href}>
+              <Link
+                href={item.href}
+                aria-current={isActive ? "page" : undefined}
+                className={`relative py-2 text-body-sm font-medium transition-colors ${
+                  isActive
+                    ? "text-elasi-gold"
+                    : "text-elasi-text hover:text-elasi-gold"
+                }`}
+              >
+                {item.label}
+
+                <span
+                  aria-hidden="true"
+                  className={`absolute inset-x-0 -bottom-0.5 mx-auto h-px bg-elasi-gold transition-[width,opacity] duration-200 ${
+                    isActive ? "w-full opacity-100" : "w-0 opacity-0"
+                  }`}
+                />
+              </Link>
+            </li>
+          );
+        })}
       </ul>
     </nav>
   );
