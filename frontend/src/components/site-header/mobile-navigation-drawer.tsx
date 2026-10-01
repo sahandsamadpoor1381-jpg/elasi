@@ -2,7 +2,7 @@
 
 import { Heart, UserRound, X } from "lucide-react";
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 type MobileNavigationDrawerProps = {
   isOpen: boolean;
@@ -36,29 +36,92 @@ const navigationItems = [
   },
 ] as const;
 
+const focusableElementsSelector = [
+  'a[href]',
+  'button:not([disabled])',
+  'input:not([disabled])',
+  'select:not([disabled])',
+  'textarea:not([disabled])',
+  '[tabindex]:not([tabindex="-1"])',
+].join(",");
+
 export function MobileNavigationDrawer({
   isOpen,
   onClose,
 }: MobileNavigationDrawerProps) {
+  const drawerRef = useRef<HTMLElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+
   useEffect(() => {
     if (!isOpen) {
       return;
     }
 
     const previousOverflow = document.body.style.overflow;
+    const previouslyFocusedElement =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
 
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
         onClose();
+        return;
+      }
+
+      if (event.key !== "Tab") {
+        return;
+      }
+
+      const drawer = drawerRef.current;
+
+      if (!drawer) {
+        return;
+      }
+
+      const focusableElements = Array.from(
+        drawer.querySelectorAll<HTMLElement>(focusableElementsSelector),
+      ).filter((element) => !element.hasAttribute("disabled"));
+
+      if (focusableElements.length === 0) {
+        event.preventDefault();
+        return;
+      }
+
+      const firstFocusableElement = focusableElements[0];
+      const lastFocusableElement =
+        focusableElements[focusableElements.length - 1];
+
+      if (
+        event.shiftKey &&
+        document.activeElement === firstFocusableElement
+      ) {
+        event.preventDefault();
+        lastFocusableElement.focus();
+        return;
+      }
+
+      if (
+        !event.shiftKey &&
+        document.activeElement === lastFocusableElement
+      ) {
+        event.preventDefault();
+        firstFocusableElement.focus();
       }
     }
 
     document.body.style.overflow = "hidden";
     window.addEventListener("keydown", handleKeyDown);
 
+    const focusFrame = window.requestAnimationFrame(() => {
+      closeButtonRef.current?.focus();
+    });
+
     return () => {
+      window.cancelAnimationFrame(focusFrame);
       document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", handleKeyDown);
+      previouslyFocusedElement?.focus();
     };
   }, [isOpen, onClose]);
 
@@ -81,6 +144,7 @@ export function MobileNavigationDrawer({
       />
 
       <aside
+        ref={drawerRef}
         role="dialog"
         aria-modal="true"
         aria-label="منوی اصلی موبایل"
@@ -101,6 +165,7 @@ export function MobileNavigationDrawer({
             </Link>
 
             <button
+              ref={closeButtonRef}
               type="button"
               aria-label="بستن منو"
               onClick={onClose}
@@ -139,7 +204,6 @@ export function MobileNavigationDrawer({
                   strokeWidth={1.7}
                   aria-hidden="true"
                 />
-
                 حساب کاربری
               </Link>
 
@@ -153,7 +217,6 @@ export function MobileNavigationDrawer({
                   strokeWidth={1.7}
                   aria-hidden="true"
                 />
-
                 علاقه‌مندی‌ها
               </Link>
             </div>
