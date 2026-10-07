@@ -1,7 +1,14 @@
+from django.db import IntegrityError, transaction
 from django.db.models.deletion import ProtectedError
 from django.test import TestCase
 
-from .models import Category, Collection, Product, ProductVariant
+from .models import (
+    Category,
+    Collection,
+    Product,
+    ProductImage,
+    ProductVariant,
+)
 
 
 class CatalogModelTests(TestCase):
@@ -70,3 +77,37 @@ class CatalogModelTests(TestCase):
     def test_category_with_products_cannot_be_deleted(self):
         with self.assertRaises(ProtectedError):
             self.category.delete()
+
+    def test_product_can_have_images(self):
+        image = ProductImage.objects.create(
+            product=self.product,
+            image="products/test/luna-front.jpg",
+            alt_text="ELASI Luna Ring front view",
+            sort_order=10,
+            is_primary=True,
+        )
+
+        self.assertIn(
+            image,
+            self.product.images.all(),
+        )
+
+        self.assertEqual(
+            image.alt_text,
+            "ELASI Luna Ring front view",
+        )
+
+    def test_product_cannot_have_multiple_primary_images(self):
+        ProductImage.objects.create(
+            product=self.product,
+            image="products/test/luna-front.jpg",
+            is_primary=True,
+        )
+
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                ProductImage.objects.create(
+                    product=self.product,
+                    image="products/test/luna-side.jpg",
+                    is_primary=True,
+                )

@@ -188,3 +188,45 @@ class ProductVariant(models.Model):
 
     def __str__(self) -> str:
         return f"{self.product.name} - {self.sku}"
+
+
+class ProductImage(models.Model):
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        related_name="images",
+    )
+
+    image = models.ImageField(
+        upload_to="products/%Y/%m/",
+    )
+
+    alt_text = models.CharField(
+        max_length=180,
+        blank=True,
+    )
+
+    sort_order = models.PositiveIntegerField(
+        default=0,
+    )
+
+    is_primary = models.BooleanField(
+        default=False,
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+    )
+
+    class Meta:
+        ordering = ("sort_order", "id")
+        constraints = [
+            models.UniqueConstraint(
+                fields=("product",),
+                condition=models.Q(is_primary=True),
+                name="unique_primary_image_per_product",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.product.name} image"

@@ -1,6 +1,12 @@
 from django.contrib import admin
 
-from .models import Category, Collection, Product, ProductVariant
+from .models import (
+    Category,
+    Collection,
+    Product,
+    ProductImage,
+    ProductVariant,
+)
 
 
 @admin.register(Category)
@@ -65,6 +71,18 @@ class ProductVariantInline(admin.TabularInline):
     )
 
 
+class ProductImageInline(admin.TabularInline):
+    model = ProductImage
+    extra = 0
+
+    fields = (
+        "image",
+        "alt_text",
+        "sort_order",
+        "is_primary",
+    )
+
+
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     list_display = (
@@ -106,6 +124,7 @@ class ProductAdmin(admin.ModelAdmin):
 
     inlines = (
         ProductVariantInline,
+        ProductImageInline,
     )
 
 
@@ -140,4 +159,33 @@ class ProductVariantAdmin(admin.ModelAdmin):
     readonly_fields = (
         "created_at",
         "updated_at",
+    )
+
+
+@admin.register(ProductImage)
+class ProductImageAdmin(admin.ModelAdmin):
+    list_display = (
+        "product",
+        "image",
+        "sort_order",
+        "is_primary",
+        "created_at",
+    )
+
+    list_filter = (
+        "is_primary",
+    )
+
+    search_fields = (
+        "product__name",
+        "product__slug",
+        "alt_text",
+    )
+
+    autocomplete_fields = (
+        "product",
+    )
+
+    readonly_fields = (
+        "created_at",
     )
