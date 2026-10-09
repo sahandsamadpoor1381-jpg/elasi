@@ -1,6 +1,8 @@
 import type { Product } from "@/types/catalog";
 
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
 
 function getApiBaseUrl(): string {
   if (!API_BASE_URL) {
@@ -11,6 +13,7 @@ function getApiBaseUrl(): string {
 
   return API_BASE_URL;
 }
+
 
 export async function getProducts(): Promise<Product[]> {
   const response = await fetch(
@@ -23,6 +26,30 @@ export async function getProducts(): Promise<Product[]> {
   if (!response.ok) {
     throw new Error(
       `Failed to fetch products: ${response.status}`,
+    );
+  }
+
+  return response.json();
+}
+
+
+export async function getProduct(
+  slug: string,
+): Promise<Product | null> {
+  const response = await fetch(
+    `${getApiBaseUrl()}/products/${encodeURIComponent(slug)}/`,
+    {
+      cache: "no-store",
+    },
+  );
+
+  if (response.status === 404) {
+    return null;
+  }
+
+  if (!response.ok) {
+    throw new Error(
+      `Failed to fetch product "${slug}": ${response.status}`,
     );
   }
 
