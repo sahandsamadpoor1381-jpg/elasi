@@ -1,7 +1,7 @@
 import re
 import secrets
 from dataclasses import dataclass
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -17,6 +17,16 @@ from .sms import send_otp_code
 
 
 User = get_user_model()
+
+
+PERSIAN_DIGITS = "۰۱۲۳۴۵۶۷۸۹"
+ARABIC_DIGITS = "٠١٢٣٤٥٦٧٨٩"
+ASCII_DIGITS = "0123456789"
+
+DIGIT_TRANSLATION = str.maketrans(
+    PERSIAN_DIGITS + ARABIC_DIGITS,
+    ASCII_DIGITS + ASCII_DIGITS,
+)
 
 
 class OTPError(Exception):
@@ -37,23 +47,59 @@ class OTPError(Exception):
 @dataclass(frozen=True)
 class OTPRequestResult:
     phone_number: str
-    expires_at: object
-    resend_available_at: object
+    expires_at: datetime
+    resend_available_at: datetime
+
+
+def normalize_digits(
+    value: str,
+) -> str:
+    """
+    Convert Persian and Arabic digits to ASCII digits.
+
+    Examples:
+        ۰۹۱۲۱۲۳۴۵۶۷ -> 09121234567
+        ٠٩١٢١٢٣٤٥٦٧ -> 09121234567
+        ۱۲۳۴۵۶       -> 123456
+    """
+
+    return value.translate(
+        DIGIT_TRANSLATION,
+    )
 
 
 def normalize_iran_phone(
     value: str,
 ) -> str:
+    """
+    Normalize supported Iranian mobile number
+    formats to E.164-style +98 format.
+
+    Examples:
+        09121234567
+        +989121234567
+        00989121234567
+        ۹۱۲...
+        ۰۹۱۲...
+
+    Result:
+        +989121234567
+    """
+
     digits = re.sub(
         r"\D",
         "",
-        value.strip(),
+        normalize_digits(
+            value.strip(),
+        ),
     )
 
     if digits.startswith("0098"):
         digits = digits[4:]
+
     elif digits.startswith("98"):
         digits = digits[2:]
+
     elif digits.startswith("0"):
         digits = digits[1:]
 
@@ -70,13 +116,22 @@ def normalize_iran_phone(
 
 
 def generate_otp_code() -> str:
-    return f"{secrets.randbelow(1_000_000):06d}"
+    """
+    Generate a cryptographically secure
+    six-digit OTP.
+
+    Leading zeros are preserved.
+    """
+
+    return (
+        f"{secrets.randbelow(1_000_000):06d}"
+    )
 
 
 def seconds_until(
-    target,
+    target: datetime,
     *,
-    now,
+    now: datetime,
 ) -> int:
     return max(
         1,
@@ -101,17 +156,23 @@ def request_otp(
 
     with transaction.atomic():
         state, _ = (
-            PhoneOTPState.objects.get_or_create(
-                phone_number=normalized_phone,
+            PhoneOTPState.objects
+            .get_or_create(
+                phone_number=(
+                    normalized_phone
+                ),
             )
         )
 
         state = (
             PhoneOTPState.objects
             .select_for_update()
-            .get(pk=state.pk)
+            .get(
+                pk=state.pk,
+            )
         )
 
+        # Active temporary lock.
         if (
             state.locked_until
             and state.locked_until > now
@@ -128,9 +189,11 @@ def request_otp(
                 ),
             )
 
+        # Prevent rapid resend.
         if (
             state.resend_available_at
-            and state.resend_available_at > now
+            and state.resend_available_at
+            > now
         ):
             raise OTPError(
                 "resend_too_soon",
@@ -145,11 +208,13 @@ def request_otp(
             )
 
         window_seconds = (
-            settings.OTP_REQUEST_WINDOW_SECONDS
+            settings
+            .OTP_REQUEST_WINDOW_SECONDS
         )
 
         window_started_at = (
-            state.request_window_started_at
+            state
+            .request_window_started_at
         )
 
         window_expired = (
@@ -164,14 +229,17 @@ def request_otp(
             state.request_window_started_at = (
                 now
             )
+
             state.request_count = 0
 
         if (
             state.request_count
-            >= settings.OTP_MAX_REQUESTS_PER_WINDOW
+            >= settings
+            .OTP_MAX_REQUESTS_PER_WINDOW
         ):
             window_end = (
-                state.request_window_started_at
+                state
+                .request_window_started_at
                 + timedelta(
                     seconds=window_seconds,
                 )
@@ -191,6 +259,7 @@ def request_otp(
 
         code = generate_otp_code()
 
+        # Never store the plaintext OTP.
         state.code_hash = make_password(
             code,
         )
@@ -215,12 +284,15 @@ def request_otp(
             )
         )
 
+        # A newly generated OTP gets a
+        # fresh verification-attempt budget.
         state.failed_attempts = 0
 
         state.request_count += 1
 
         state.last_sent_at = now
 
+        # Clear an expired lock.
         if (
             state.locked_until
             and state.locked_until <= now
@@ -229,6 +301,8 @@ def request_otp(
 
         state.save()
 
+    # SMS delivery happens after the DB
+    # transaction has committed successfully.
     send_otp_code(
         phone_number=normalized_phone,
         code=code,
@@ -248,11 +322,15 @@ def verify_otp(
     phone_number: str,
     code: str,
 ):
-    normalized_phone = normalize_iran_phone(
-        phone_number,
+    normalized_phone = (
+        normalize_iran_phone(
+            phone_number,
+        )
     )
 
-    normalized_code = code.strip()
+    normalized_code = normalize_digits(
+        code.strip(),
+    )
 
     if not re.fullmatch(
         r"\d{6}",
@@ -265,6 +343,12 @@ def verify_otp(
 
     now = timezone.now()
 
+    # Some OTP failures need to update the
+    # database first, then return an error.
+    #
+    # Raising those exceptions inside
+    # transaction.atomic() would roll back
+    # failed_attempts / expiration cleanup.
     pending_error: OTPError | None = None
 
     with transaction.atomic():
@@ -278,13 +362,16 @@ def verify_otp(
                     ),
                 )
             )
-        except PhoneOTPState.DoesNotExist as exc:
+
+        except (
+            PhoneOTPState.DoesNotExist
+        ) as exc:
             raise OTPError(
                 "invalid_otp",
                 "Invalid OTP code.",
             ) from exc
 
-        # Already temporarily locked.
+        # Existing active lock.
         if (
             state.locked_until
             and state.locked_until > now
@@ -310,8 +397,10 @@ def verify_otp(
                 "Invalid OTP code.",
             )
 
-        # Expired OTP:
-        # Persist cleanup first.
+        # Expired OTP.
+        #
+        # Persist cleanup and raise only
+        # after transaction commit.
         if state.expires_at <= now:
             state.code_hash = ""
             state.expires_at = None
@@ -329,9 +418,10 @@ def verify_otp(
                 "OTP code has expired.",
             )
 
-        # Wrong OTP:
-        # Persist failed_attempts / lock before
-        # raising the application-level error.
+        # Wrong OTP.
+        #
+        # Persist the failed-attempt count
+        # before returning an error.
         elif not check_password(
             normalized_code,
             state.code_hash,
@@ -340,7 +430,8 @@ def verify_otp(
 
             if (
                 state.failed_attempts
-                >= settings.OTP_MAX_VERIFY_ATTEMPTS
+                >= settings
+                .OTP_MAX_VERIFY_ATTEMPTS
             ):
                 state.locked_until = (
                     now
@@ -375,6 +466,7 @@ def verify_otp(
                         now=now,
                     ),
                 )
+
             else:
                 pending_error = OTPError(
                     "invalid_otp",
@@ -384,7 +476,8 @@ def verify_otp(
         # Correct OTP.
         else:
             user = (
-                User.objects.filter(
+                User.objects
+                .filter(
                     phone_number=(
                         normalized_phone
                     ),
@@ -394,7 +487,9 @@ def verify_otp(
 
             if user is None:
                 user = User(
-                    username=normalized_phone,
+                    username=(
+                        normalized_phone
+                    ),
                     phone_number=(
                         normalized_phone
                     ),
@@ -405,14 +500,22 @@ def verify_otp(
 
                 user.save()
 
-            # Consume OTP after successful use.
+            # Consume OTP after successful
+            # verification.
+            #
+            # The same code cannot be used
+            # again.
             state.code_hash = ""
             state.expires_at = None
             state.resend_available_at = None
+
             state.failed_attempts = 0
             state.locked_until = None
+
             state.request_count = 0
-            state.request_window_started_at = None
+            state.request_window_started_at = (
+                None
+            )
 
             state.save(
                 update_fields=(
@@ -430,11 +533,17 @@ def verify_otp(
             return user
 
     # Important:
-    # raise AFTER transaction.atomic() exits,
-    # so database changes are committed.
+    #
+    # These errors are intentionally raised
+    # AFTER transaction.atomic() exits.
+    #
+    # Therefore database changes such as
+    # failed_attempts are committed instead
+    # of being rolled back.
     if pending_error is not None:
         raise pending_error
 
+    # Defensive fallback.
     raise OTPError(
         "invalid_otp",
         "Invalid OTP code.",

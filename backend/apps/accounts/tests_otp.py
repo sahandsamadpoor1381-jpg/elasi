@@ -1,7 +1,9 @@
 from datetime import timedelta
 from unittest.mock import patch
 
-from django.contrib.auth import get_user_model
+from django.contrib.auth import (
+    get_user_model,
+)
 from django.contrib.auth.hashers import (
     check_password,
 )
@@ -39,6 +41,16 @@ class PhoneNormalizationTests(
         self.assertEqual(
             normalize_iran_phone(
                 "+98 912 123 4567",
+            ),
+            "+989121234567",
+        )
+
+    def test_normalizes_persian_digits(
+        self,
+    ):
+        self.assertEqual(
+            normalize_iran_phone(
+                "۰۹۱۲۱۲۳۴۵۶۷",
             ),
             "+989121234567",
         )
@@ -131,6 +143,10 @@ class OTPServiceTests(TestCase):
             "resend_too_soon",
         )
 
+        self.assertIsNotNone(
+            context.exception.retry_after,
+        )
+
     @patch(
         "apps.accounts.otp.generate_otp_code",
         return_value="123456",
@@ -170,6 +186,34 @@ class OTPServiceTests(TestCase):
         self.assertEqual(
             User.objects.count(),
             1,
+        )
+
+    @patch(
+        "apps.accounts.otp.generate_otp_code",
+        return_value="123456",
+    )
+    @patch(
+        "apps.accounts.otp.send_otp_code",
+    )
+    def test_accepts_persian_digits_for_otp(
+        self,
+        send_mock,
+        generate_mock,
+    ):
+        request_otp(
+            "۰۹۱۲۱۲۳۴۵۶۷",
+        )
+
+        user = verify_otp(
+            phone_number=(
+                "۰۹۱۲۱۲۳۴۵۶۷"
+            ),
+            code="۱۲۳۴۵۶",
+        )
+
+        self.assertEqual(
+            user.phone_number,
+            "+989121234567",
         )
 
     @patch(
@@ -223,13 +267,18 @@ class OTPServiceTests(TestCase):
 
         with self.assertRaises(
             OTPError,
-        ):
+        ) as context:
             verify_otp(
                 phone_number=(
                     "09121234567"
                 ),
                 code="654321",
             )
+
+        self.assertEqual(
+            context.exception.code,
+            "invalid_otp",
+        )
 
         state = (
             PhoneOTPState.objects.get(
@@ -292,4 +341,159 @@ class OTPServiceTests(TestCase):
         self.assertEqual(
             context.exception.code,
             "otp_expired",
+        )
+
+        state.refresh_from_db()
+
+        self.assertEqual(
+            state.code_hash,
+            "",
+        )
+
+        self.assertIsNone(
+            state.expires_at,
+        )
+
+    @patch(
+        "apps.accounts.otp.generate_otp_code",
+        return_value="123456",
+    )
+    @patch(
+        "apps.accounts.otp.send_otp_code",
+    )
+    def test_wrong_attempts_eventually_lock_otp(
+        self,
+        send_mock,
+        generate_mock,
+    ):
+        request_otp(
+            "09121234567",
+        )
+
+        max_attempts = 5
+
+        for attempt in range(
+            max_attempts,
+        ):
+            with self.assertRaises(
+                OTPError,
+            ) as context:
+                verify_otp(
+                    phone_number=(
+                        "09121234567"
+                    ),
+                    code="654321",
+                )
+
+            if (
+                attempt
+                < max_attempts - 1
+            ):
+                self.assertEqual(
+                    context.exception.code,
+                    "invalid_otp",
+                )
+
+        self.assertEqual(
+            context.exception.code,
+            "otp_locked",
+        )
+
+        state = (
+            PhoneOTPState.objects.get(
+                phone_number=(
+                    "+989121234567"
+                ),
+            )
+        )
+
+        self.assertEqual(
+            state.failed_attempts,
+            max_attempts,
+        )
+
+        self.assertIsNotNone(
+            state.locked_until,
+        )
+
+        self.assertGreater(
+            state.locked_until,
+            timezone.now(),
+        )
+
+    @patch(
+        "apps.accounts.otp.generate_otp_code",
+        return_value="123456",
+    )
+    @patch(
+        "apps.accounts.otp.send_otp_code",
+    )
+    def test_successful_verification_resets_otp_state(
+        self,
+        send_mock,
+        generate_mock,
+    ):
+        request_otp(
+            "09121234567",
+        )
+
+        with self.assertRaises(
+            OTPError,
+        ):
+            verify_otp(
+                phone_number=(
+                    "09121234567"
+                ),
+                code="654321",
+            )
+
+        user = verify_otp(
+            phone_number=(
+                "09121234567"
+            ),
+            code="123456",
+        )
+
+        self.assertEqual(
+            user.phone_number,
+            "+989121234567",
+        )
+
+        state = (
+            PhoneOTPState.objects.get(
+                phone_number=(
+                    "+989121234567"
+                ),
+            )
+        )
+
+        self.assertEqual(
+            state.code_hash,
+            "",
+        )
+
+        self.assertIsNone(
+            state.expires_at,
+        )
+
+        self.assertIsNone(
+            state.resend_available_at,
+        )
+
+        self.assertEqual(
+            state.failed_attempts,
+            0,
+        )
+
+        self.assertIsNone(
+            state.locked_until,
+        )
+
+        self.assertEqual(
+            state.request_count,
+            0,
+        )
+
+        self.assertIsNone(
+            state.request_window_started_at,
         )
