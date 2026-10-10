@@ -21,6 +21,10 @@ urlpatterns = [
         "api/v1/",
         include("apps.cart.urls"),
     ),
+    path(
+        "api/v1/",
+        include("apps.orders.urls"),
+    ),
 ]
 
 
