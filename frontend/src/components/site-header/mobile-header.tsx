@@ -1,13 +1,22 @@
 "use client";
 
-import { Menu, Search, ShoppingBag } from "lucide-react";
+import {
+  Menu,
+  Search,
+} from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
+import { CartLink } from "@/components/cart/cart-link";
+
 import { MobileNavigationDrawer } from "./mobile-navigation-drawer";
 
+
 export function MobileHeader() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [
+    isMenuOpen,
+    setIsMenuOpen,
+  ] = useState(false);
 
   return (
     <>
@@ -17,11 +26,19 @@ export function MobileHeader() {
             <button
               type="button"
               aria-label="باز کردن منوی اصلی"
-              aria-expanded={isMenuOpen}
-              onClick={() => setIsMenuOpen(true)}
+              aria-expanded={
+                isMenuOpen
+              }
+              onClick={() =>
+                setIsMenuOpen(true)
+              }
               className="flex size-11 justify-self-start items-center justify-center rounded-full text-elasi-green transition-colors hover:bg-elasi-green/5 hover:text-elasi-gold"
             >
-              <Menu size={21} strokeWidth={1.7} aria-hidden="true" />
+              <Menu
+                size={21}
+                strokeWidth={1.7}
+                aria-hidden="true"
+              />
             </button>
 
             <Link
@@ -38,16 +55,14 @@ export function MobileHeader() {
                 aria-label="باز کردن جستجو"
                 className="flex size-11 items-center justify-center rounded-full text-elasi-green transition-colors hover:bg-elasi-green/5 hover:text-elasi-gold"
               >
-                <Search size={20} strokeWidth={1.7} aria-hidden="true" />
+                <Search
+                  size={20}
+                  strokeWidth={1.7}
+                  aria-hidden="true"
+                />
               </button>
 
-              <Link
-                href="/cart"
-                aria-label="سبد خرید"
-                className="flex size-11 items-center justify-center rounded-full text-elasi-green transition-colors hover:bg-elasi-green/5 hover:text-elasi-gold"
-              >
-                <ShoppingBag size={20} strokeWidth={1.7} aria-hidden="true" />
-              </Link>
+              <CartLink className="size-11" />
             </div>
           </div>
         </div>
@@ -55,7 +70,9 @@ export function MobileHeader() {
 
       <MobileNavigationDrawer
         isOpen={isMenuOpen}
-        onClose={() => setIsMenuOpen(false)}
+        onClose={() =>
+          setIsMenuOpen(false)
+        }
       />
     </>
   );

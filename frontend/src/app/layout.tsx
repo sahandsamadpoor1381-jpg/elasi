@@ -2,9 +2,11 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import type { ReactNode } from "react";
 
+import { CartProvider } from "@/components/cart/cart-provider";
 import { SiteHeader } from "@/components/site-header/site-header";
 
 import "./globals.css";
+
 
 const peyda = localFont({
   src: [
@@ -33,25 +35,38 @@ const peyda = localFont({
   display: "swap",
 });
 
+
 export const metadata: Metadata = {
   title: {
     default: "ELASI | جواهرات طلا و نقره",
     template: "%s | ELASI",
   },
+
   description:
     "ELASI؛ فروشگاه آنلاین جواهرات طلا و نقره با تمرکز بر طراحی ظریف، انتخاب ماندگار و تجربه خرید حرفه‌ای.",
 };
+
 
 type RootLayoutProps = Readonly<{
   children: ReactNode;
 }>;
 
-export default function RootLayout({ children }: RootLayoutProps) {
+
+export default function RootLayout({
+  children,
+}: RootLayoutProps) {
   return (
-    <html lang="fa" dir="rtl" className={peyda.variable}>
+    <html
+      lang="fa"
+      dir="rtl"
+      className={peyda.variable}
+    >
       <body>
-        <SiteHeader />
-        {children}
+        <CartProvider>
+          <SiteHeader />
+
+          {children}
+        </CartProvider>
       </body>
     </html>
   );

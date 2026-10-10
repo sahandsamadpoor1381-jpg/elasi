@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 import environ
+from corsheaders.defaults import default_headers
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -42,6 +43,11 @@ CORS_ALLOWED_ORIGINS = env.list(
     default=[],
 )
 
+CORS_ALLOW_HEADERS = (
+    *default_headers,
+    "x-cart-token",
+)
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -57,6 +63,7 @@ INSTALLED_APPS = [
     "apps.core.apps.CoreConfig",
     "apps.catalog.apps.CatalogConfig",
     "apps.inventory.apps.InventoryConfig",
+    "apps.cart.apps.CartConfig",
 ]
 
 MIDDLEWARE = [

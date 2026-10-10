@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { useCart } from "@/components/cart/cart-provider";
 import type {
   Product,
   ProductVariant,
@@ -108,6 +109,11 @@ function getVariantTitle(
 export function ProductPurchasePanel({
   product,
 }: ProductPurchasePanelProps) {
+  const {
+    addItem,
+    error: cartError,
+  } = useCart();
+
   const initialVariant =
     product.variants.find(
       (variant) => variant.available > 0,
@@ -119,6 +125,16 @@ export function ProductPurchasePanel({
   ] = useState(
     initialVariant?.sku ?? "",
   );
+
+  const [
+    isAddingToCart,
+    setIsAddingToCart,
+  ] = useState(false);
+
+  const [
+    addToCartSuccess,
+    setAddToCartSuccess,
+  ] = useState(false);
 
   const selectedVariant =
     product.variants.find(
@@ -134,6 +150,42 @@ export function ProductPurchasePanel({
       selectedVariant &&
         selectedVariant.available > 0,
     );
+
+
+  async function handleAddToCart() {
+    if (
+      !selectedVariant ||
+      !isAvailable ||
+      isAddingToCart
+    ) {
+      return;
+    }
+
+    setIsAddingToCart(true);
+    setAddToCartSuccess(false);
+
+    try {
+      await addItem(
+        selectedVariant.sku,
+        1,
+      );
+
+      setAddToCartSuccess(true);
+    } catch {
+      setAddToCartSuccess(false);
+    } finally {
+      setIsAddingToCart(false);
+    }
+  }
+
+
+  function handleVariantChange(
+    sku: string,
+  ) {
+    setSelectedSku(sku);
+    setAddToCartSuccess(false);
+  }
+
 
   return (
     <div>
@@ -194,7 +246,7 @@ export function ProductPurchasePanel({
         )}
       </div>
 
-      {/* Variant selector — only when there is actually a choice */}
+      {/* Variant selector */}
       {hasMultipleVariants ? (
         <div className="mt-9">
           <div className="flex items-end justify-between gap-4">
@@ -239,7 +291,7 @@ export function ProductPurchasePanel({
                       isSelected
                     }
                     onClick={() =>
-                      setSelectedSku(
+                      handleVariantChange(
                         variant.sku,
                       )
                     }
@@ -300,6 +352,44 @@ export function ProductPurchasePanel({
           </div>
         </div>
       ) : null}
+
+      {/* Add to cart */}
+      <div className="mt-9">
+        <button
+          type="button"
+          onClick={handleAddToCart}
+          disabled={
+            !selectedVariant ||
+            !isAvailable ||
+            isAddingToCart
+          }
+          className="elasi-button elasi-button--primary w-full disabled:cursor-not-allowed disabled:opacity-45"
+        >
+          {isAddingToCart
+            ? "در حال افزودن..."
+            : isAvailable
+              ? "افزودن به سبد خرید"
+              : "ناموجود"}
+        </button>
+
+        {addToCartSuccess ? (
+          <p
+            role="status"
+            className="mt-3 text-center text-sm font-medium text-elasi-green"
+          >
+            محصول به سبد خرید اضافه شد.
+          </p>
+        ) : null}
+
+        {cartError ? (
+          <p
+            role="alert"
+            className="mt-3 text-center text-sm text-red-700"
+          >
+            {cartError}
+          </p>
+        ) : null}
+      </div>
 
       {/* Product specifications */}
       {selectedVariant ? (
