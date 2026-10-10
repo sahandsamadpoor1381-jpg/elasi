@@ -1,3 +1,9 @@
+from rest_framework import status
+from rest_framework.test import APITestCase
+
+from apps.cart.models import Cart, CartItem
+from apps.inventory.models import InventoryBalance
+
 from django.contrib.auth import (
     get_user_model,
 )
@@ -185,3 +191,291 @@ class OrderModelTests(TestCase):
                 self.create_order_item(
                     order,
                 )
+
+class CheckoutAPITests(APITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = User.objects.create_user(
+            username="checkout-user",
+            email="checkout@example.com",
+            password="test-password",
+        )
+
+        category = Category.objects.create(
+            name="Checkout Rings",
+            slug="checkout-rings",
+            sort_order=10,
+        )
+
+        product = Product.objects.create(
+            name="ELASI Checkout Ring",
+            slug="elasi-checkout-ring",
+            category=category,
+            status=Product.Status.ACTIVE,
+        )
+
+        cls.variant = (
+            ProductVariant.objects.create(
+                product=product,
+                sku="ELA-CHECKOUT-G18-17",
+                material=(
+                    ProductVariant.Material.GOLD
+                ),
+                karat=18,
+                size="17",
+                weight_grams="3.250",
+                price_rial=250000000,
+            )
+        )
+
+        InventoryBalance.objects.create(
+            variant=cls.variant,
+            on_hand=5,
+            reserved=2,
+        )
+
+    def create_cart(
+        self,
+        *,
+        quantity: int = 1,
+    ) -> Cart:
+        cart = Cart.objects.create()
+
+        CartItem.objects.create(
+            cart=cart,
+            variant=self.variant,
+            quantity=quantity,
+        )
+
+        return cart
+
+    def checkout_payload(self):
+        return {
+            "recipient_name": (
+                "Test Customer"
+            ),
+            "phone_number": (
+                "09120000000"
+            ),
+            "province": (
+                "West Azerbaijan"
+            ),
+            "city": "Urmia",
+            "postal_code": (
+                "1234567890"
+            ),
+            "address_line": (
+                "Test checkout address"
+            ),
+        }
+
+    def test_checkout_requires_authentication(
+        self,
+    ):
+        cart = self.create_cart()
+
+        response = self.client.post(
+            "/api/v1/checkout/",
+            self.checkout_payload(),
+            format="json",
+            HTTP_X_CART_TOKEN=str(
+                cart.token,
+            ),
+        )
+
+        self.assertIn(
+            response.status_code,
+            (
+                status.HTTP_401_UNAUTHORIZED,
+                status.HTTP_403_FORBIDDEN,
+            ),
+        )
+
+    def test_checkout_creates_order_and_reserves_inventory(
+        self,
+    ):
+        cart = self.create_cart(
+            quantity=2,
+        )
+
+        self.client.force_authenticate(
+            user=self.user,
+        )
+
+        response = self.client.post(
+            "/api/v1/checkout/",
+            self.checkout_payload(),
+            format="json",
+            HTTP_X_CART_TOKEN=str(
+                cart.token,
+            ),
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_201_CREATED,
+        )
+
+        payload = response.json()
+
+        self.assertEqual(
+            payload["subtotal_rial"],
+            500000000,
+        )
+
+        self.assertEqual(
+            payload["total_rial"],
+            500000000,
+        )
+
+        self.assertEqual(
+            len(payload["items"]),
+            1,
+        )
+
+        inventory = (
+            InventoryBalance.objects.get(
+                variant=self.variant,
+            )
+        )
+
+        self.assertEqual(
+            inventory.reserved,
+            4,
+        )
+
+        cart.refresh_from_db()
+
+        self.assertEqual(
+            cart.status,
+            Cart.Status.CONVERTED,
+        )
+
+        self.assertEqual(
+            cart.user,
+            self.user,
+        )
+
+    def test_checkout_uses_server_price(
+        self,
+    ):
+        cart = self.create_cart()
+
+        self.client.force_authenticate(
+            user=self.user,
+        )
+
+        payload = (
+            self.checkout_payload()
+        )
+
+        payload["total_rial"] = 1
+        payload["subtotal_rial"] = 1
+
+        response = self.client.post(
+            "/api/v1/checkout/",
+            payload,
+            format="json",
+            HTTP_X_CART_TOKEN=str(
+                cart.token,
+            ),
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_201_CREATED,
+        )
+
+        self.assertEqual(
+            response.json()[
+                "total_rial"
+            ],
+            250000000,
+        )
+
+    def test_checkout_rejects_insufficient_stock(
+        self,
+    ):
+        cart = self.create_cart(
+            quantity=4,
+        )
+
+        self.client.force_authenticate(
+            user=self.user,
+        )
+
+        response = self.client.post(
+            "/api/v1/checkout/",
+            self.checkout_payload(),
+            format="json",
+            HTTP_X_CART_TOKEN=str(
+                cart.token,
+            ),
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST,
+        )
+
+        payload = response.json()
+
+        self.assertEqual(
+            payload["code"],
+            "stock_exceeded",
+        )
+
+        self.assertEqual(
+            payload["available"],
+            3,
+        )
+
+        self.assertFalse(
+            Order.objects.exists(),
+        )
+
+    def test_converted_cart_cannot_checkout_twice(
+        self,
+    ):
+        cart = self.create_cart()
+
+        self.client.force_authenticate(
+            user=self.user,
+        )
+
+        first_response = (
+            self.client.post(
+                "/api/v1/checkout/",
+                self.checkout_payload(),
+                format="json",
+                HTTP_X_CART_TOKEN=str(
+                    cart.token,
+                ),
+            )
+        )
+
+        self.assertEqual(
+            first_response.status_code,
+            status.HTTP_201_CREATED,
+        )
+
+        second_response = (
+            self.client.post(
+                "/api/v1/checkout/",
+                self.checkout_payload(),
+                format="json",
+                HTTP_X_CART_TOKEN=str(
+                    cart.token,
+                ),
+            )
+        )
+
+        self.assertEqual(
+            second_response.status_code,
+            status.HTTP_400_BAD_REQUEST,
+        )
+
+        self.assertEqual(
+            Order.objects.count(),
+            1,
+        )
