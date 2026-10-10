@@ -163,3 +163,38 @@ REST_FRAMEWORK = {
         "rest_framework.permissions.IsAuthenticated",
     ],
 }
+
+OTP_SMS_BACKEND = env(
+    "OTP_SMS_BACKEND",
+    default="apps.accounts.sms.ConsoleOTPBackend",
+)
+
+OTP_CODE_TTL_SECONDS = env.int(
+    "OTP_CODE_TTL_SECONDS",
+    default=300,
+)
+
+OTP_RESEND_COOLDOWN_SECONDS = env.int(
+    "OTP_RESEND_COOLDOWN_SECONDS",
+    default=60,
+)
+
+OTP_REQUEST_WINDOW_SECONDS = env.int(
+    "OTP_REQUEST_WINDOW_SECONDS",
+    default=900,
+)
+
+OTP_MAX_REQUESTS_PER_WINDOW = env.int(
+    "OTP_MAX_REQUESTS_PER_WINDOW",
+    default=5,
+)
+
+OTP_MAX_VERIFY_ATTEMPTS = env.int(
+    "OTP_MAX_VERIFY_ATTEMPTS",
+    default=5,
+)
+
+OTP_LOCK_SECONDS = env.int(
+    "OTP_LOCK_SECONDS",
+    default=900,
+)
