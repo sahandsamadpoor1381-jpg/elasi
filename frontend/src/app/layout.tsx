@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import type { ReactNode } from "react";
 
+import { AuthProvider } from "@/components/auth/auth-provider";
 import { CartProvider } from "@/components/cart/cart-provider";
 import { SiteHeader } from "@/components/site-header/site-header";
 
@@ -43,12 +43,12 @@ export const metadata: Metadata = {
   },
 
   description:
-    "ELASI؛ فروشگاه آنلاین جواهرات طلا و نقره با تمرکز بر طراحی ظریف، انتخاب ماندگار و تجربه خرید حرفه‌ای.",
+    "فروشگاه آنلاین جواهرات طلا و نقره ELASI.",
 };
 
 
 type RootLayoutProps = Readonly<{
-  children: ReactNode;
+  children: React.ReactNode;
 }>;
 
 
@@ -62,11 +62,13 @@ export default function RootLayout({
       className={peyda.variable}
     >
       <body>
-        <CartProvider>
-          <SiteHeader />
+        <AuthProvider>
+          <CartProvider>
+            <SiteHeader />
 
-          {children}
-        </CartProvider>
+            {children}
+          </CartProvider>
+        </AuthProvider>
       </body>
     </html>
   );
