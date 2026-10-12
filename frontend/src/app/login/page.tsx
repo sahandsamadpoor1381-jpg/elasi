@@ -126,7 +126,7 @@ export default async function LoginPage({
             />
 
 
-            {/* Fine vertical detail */}
+            {/* Fine editorial guide */}
 
             <div
               aria-hidden="true"
@@ -144,7 +144,7 @@ export default async function LoginPage({
             />
 
 
-            {/* Top metadata */}
+            {/* Metadata */}
 
             <div
               dir="ltr"
@@ -194,8 +194,7 @@ export default async function LoginPage({
 
               <h2
                 style={{
-                  color:
-                    "var(--elasi-white)",
+                  color: "var(--elasi-white)",
                 }}
                 className="
                   mt-2
@@ -207,7 +206,6 @@ export default async function LoginPage({
               >
                 ورود، آغاز تجربه شخصی شماست.
               </h2>
-
 
               <div className="mt-4 flex items-center gap-2">
                 <span
@@ -232,15 +230,14 @@ export default async function LoginPage({
               z-20
               -mt-14
               px-3
-              pb-6
+              pb-4
               sm:-mt-16
               sm:px-6
-              sm:pb-8
+              sm:pb-6
             "
           >
             <div
               className="
-                relative
                 mx-auto
                 w-full
                 max-w-[660px]
@@ -253,23 +250,6 @@ export default async function LoginPage({
                 sm:rounded-[2rem]
               "
             >
-              {/* Gold signature line */}
-
-              <div
-                aria-hidden="true"
-                className="
-                  absolute
-                  right-8
-                  top-0
-                  h-[2px]
-                  w-16
-                  bg-elasi-gold
-                  sm:right-10
-                  sm:w-20
-                "
-              />
-
-
               <div className="p-6 sm:p-9">
                 <LoginForm
                   redirectTo={
@@ -284,7 +264,7 @@ export default async function LoginPage({
               dir="ltr"
               className="
                 mx-auto
-                mt-4
+                mt-3
                 flex
                 max-w-[660px]
                 items-center
@@ -292,11 +272,11 @@ export default async function LoginPage({
                 px-2
               "
             >
-              <span className="text-[8px] tracking-[0.22em] text-elasi-muted/45">
+              <span className="text-[8px] tracking-[0.22em] text-elasi-muted/40">
                 ELASI / ACCOUNT
               </span>
 
-              <span className="text-[8px] tracking-[0.12em] text-elasi-muted/40">
+              <span className="text-[8px] tracking-[0.12em] text-elasi-muted/35">
                 PRIVATE EXPERIENCE
               </span>
             </div>
@@ -318,7 +298,7 @@ export default async function LoginPage({
           "
         >
           {/* ===================================================
-              GREEN EDITORIAL PANEL — LEFT
+              GREEN EDITORIAL PANEL
              =================================================== */}
 
           <div
@@ -385,7 +365,7 @@ export default async function LoginPage({
             />
 
 
-            {/* Subtle composition line */}
+            {/* Editorial guide */}
 
             <div
               aria-hidden="true"
@@ -405,7 +385,7 @@ export default async function LoginPage({
 
             <div className="relative z-10 flex h-full min-h-[610px] flex-col justify-between">
 
-              {/* Panel header */}
+              {/* Panel metadata */}
 
               <div
                 dir="ltr"
@@ -427,7 +407,7 @@ export default async function LoginPage({
               </div>
 
 
-              {/* Panel statement */}
+              {/* Statement */}
 
               <div className="max-w-[560px] pb-16 xl:pb-20">
                 <p className="text-[11px] font-medium tracking-[0.18em] text-elasi-gold">
@@ -436,8 +416,7 @@ export default async function LoginPage({
 
                 <h2
                   style={{
-                    color:
-                      "var(--elasi-white)",
+                    color: "var(--elasi-white)",
                   }}
                   className="
                     mt-3
@@ -457,7 +436,6 @@ export default async function LoginPage({
                   سریع‌تر و متناسب با شما.
                 </p>
 
-
                 <div className="mt-8 flex items-center gap-3">
                   <span
                     aria-hidden="true"
@@ -475,7 +453,7 @@ export default async function LoginPage({
 
 
           {/* ===================================================
-              FORM SIDE — RIGHT
+              FORM SIDE
              =================================================== */}
 
           <div
@@ -496,6 +474,7 @@ export default async function LoginPage({
                 relative
                 w-full
                 max-w-[500px]
+                -translate-x-4
                 overflow-hidden
                 rounded-[2rem]
                 border
@@ -503,21 +482,10 @@ export default async function LoginPage({
                 bg-white
                 p-9
                 shadow-[0_22px_65px_rgba(21,42,36,0.075)]
+                xl:-translate-x-6
                 xl:p-11
               "
             >
-              <div
-                aria-hidden="true"
-                className="
-                  absolute
-                  right-10
-                  top-0
-                  h-[2px]
-                  w-20
-                  bg-elasi-gold
-                "
-              />
-
               <LoginForm
                 redirectTo={
                   redirectTo
