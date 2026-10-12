@@ -1,12 +1,17 @@
 "use client";
 
 import {
-  FormEvent,
   useEffect,
-  useMemo,
   useState,
+  type FormEvent,
 } from "react";
-import { ArrowLeft, Check, LoaderCircle } from "lucide-react";
+
+import {
+  ArrowLeft,
+  Check,
+  LoaderCircle,
+} from "lucide-react";
+
 import { useRouter } from "next/navigation";
 
 import { useAuth } from "@/components/auth/auth-provider";
@@ -22,36 +27,44 @@ type LoginStep =
   | "otp";
 
 
-const PERSIAN_DIGITS = "۰۱۲۳۴۵۶۷۸۹";
-const ARABIC_DIGITS = "٠١٢٣٤٥٦٧٨٩";
-const ASCII_DIGITS = "0123456789";
+const PERSIAN_DIGITS =
+  "۰۱۲۳۴۵۶۷۸۹";
+
+const ARABIC_DIGITS =
+  "٠١٢٣٤٥٦٧٨٩";
+
+const ASCII_DIGITS =
+  "0123456789";
 
 
 function normalizeDigits(
   value: string,
 ): string {
-  const map = new Map<string, string>();
+  const digitMap =
+    new Map<string, string>();
 
   for (
     let index = 0;
     index < ASCII_DIGITS.length;
     index += 1
   ) {
-    map.set(
+    digitMap.set(
       PERSIAN_DIGITS[index],
       ASCII_DIGITS[index],
     );
 
-    map.set(
+    digitMap.set(
       ARABIC_DIGITS[index],
       ASCII_DIGITS[index],
     );
   }
 
   return [...value]
-    .map((character) => (
-      map.get(character) ?? character
-    ))
+    .map(
+      (character) =>
+        digitMap.get(character)
+        ?? character,
+    )
     .join("");
 }
 
@@ -59,10 +72,12 @@ function normalizeDigits(
 function isValidIranianPhone(
   value: string,
 ): boolean {
-  const normalized = normalizeDigits(
-    value,
-  )
-    .replace(/[()\s-]/g, "");
+  const normalized =
+    normalizeDigits(value)
+      .replace(
+        /[()\s-]/g,
+        "",
+      );
 
   return /^(?:(?:\+98|0098|98|0)?9\d{9})$/.test(
     normalized,
@@ -102,26 +117,47 @@ export function LoginForm({
     clearError,
   } = useAuth();
 
-  const [step, setStep] =
-    useState<LoginStep>("phone");
 
-  const [phoneNumber, setPhoneNumber] =
-    useState("");
+  const [
+    step,
+    setStep,
+  ] = useState<LoginStep>(
+    "phone",
+  );
 
-  const [sentPhoneNumber, setSentPhoneNumber] =
-    useState<string | null>(null);
+  const [
+    phoneNumber,
+    setPhoneNumber,
+  ] = useState("");
 
-  const [code, setCode] =
-    useState("");
+  const [
+    sentPhoneNumber,
+    setSentPhoneNumber,
+  ] = useState<string | null>(
+    null,
+  );
 
-  const [countdown, setCountdown] =
-    useState(0);
+  const [
+    code,
+    setCode,
+  ] = useState("");
 
-  const [isSubmitting, setIsSubmitting] =
-    useState(false);
+  const [
+    countdown,
+    setCountdown,
+  ] = useState(0);
 
-  const [localError, setLocalError] =
-    useState<string | null>(null);
+  const [
+    isSubmitting,
+    setIsSubmitting,
+  ] = useState(false);
+
+  const [
+    localError,
+    setLocalError,
+  ] = useState<string | null>(
+    null,
+  );
 
 
   const displayedError =
@@ -129,25 +165,20 @@ export function LoginForm({
 
 
   const canResend =
-    step === "otp" &&
-    countdown <= 0 &&
-    !isSubmitting;
+    step === "otp"
+    && countdown <= 0
+    && !isSubmitting;
 
 
-  const formattedPhone =
-    useMemo(() => {
-      if (!sentPhoneNumber) {
-        return null;
-      }
-
-      return sentPhoneNumber;
-    }, [sentPhoneNumber]);
+  const verificationPhone =
+    sentPhoneNumber
+    ?? phoneNumber;
 
 
   useEffect(() => {
     if (
-      !isLoading &&
-      user
+      !isLoading
+      && user
     ) {
       router.replace(
         redirectTo,
@@ -162,30 +193,34 @@ export function LoginForm({
 
 
   useEffect(() => {
-    if (countdown <= 0) {
+    if (
+      countdown <= 0
+    ) {
       return;
     }
 
-    const timer = window.setInterval(
-      () => {
-        setCountdown(
-          (current) => (
-            Math.max(
-              0,
-              current - 1,
-            )
-          ),
-        );
-      },
-      1000,
-    );
+    const timer =
+      window.setInterval(
+        () => {
+          setCountdown(
+            (current) =>
+              Math.max(
+                0,
+                current - 1,
+              ),
+          );
+        },
+        1000,
+      );
 
     return () => {
       window.clearInterval(
         timer,
       );
     };
-  }, [countdown]);
+  }, [
+    countdown,
+  ]);
 
 
   function resetErrors() {
@@ -201,6 +236,7 @@ export function LoginForm({
 
     resetErrors();
 
+
     if (
       !isValidIranianPhone(
         phoneNumber,
@@ -212,6 +248,7 @@ export function LoginForm({
 
       return;
     }
+
 
     setIsSubmitting(true);
 
@@ -230,10 +267,16 @@ export function LoginForm({
       );
 
       setCode("");
-      setStep("otp");
+
+      setStep(
+        "otp",
+      );
     } catch {
-      // AuthProvider exposes the
-      // user-facing error message.
+      /*
+       * AuthProvider already converts
+       * API errors into user-facing
+       * Persian messages.
+       */
     } finally {
       setIsSubmitting(false);
     }
@@ -247,13 +290,16 @@ export function LoginForm({
 
     resetErrors();
 
+
     const normalizedCode =
       normalizeOtpInput(
         code,
       );
 
+
     if (
-      normalizedCode.length !== 6
+      normalizedCode.length
+      !== 6
     ) {
       setLocalError(
         "کد تأیید باید ۶ رقم باشد.",
@@ -262,11 +308,12 @@ export function LoginForm({
       return;
     }
 
+
     setIsSubmitting(true);
 
     try {
       await verifyCode(
-        phoneNumber,
+        verificationPhone,
         normalizedCode,
       );
 
@@ -276,8 +323,10 @@ export function LoginForm({
 
       router.refresh();
     } catch {
-      // AuthProvider exposes the
-      // user-facing error message.
+      /*
+       * AuthProvider exposes the
+       * appropriate error message.
+       */
     } finally {
       setIsSubmitting(false);
     }
@@ -285,7 +334,9 @@ export function LoginForm({
 
 
   async function handleResend() {
-    if (!canResend) {
+    if (
+      !canResend
+    ) {
       return;
     }
 
@@ -296,7 +347,7 @@ export function LoginForm({
     try {
       const result =
         await requestCode(
-          phoneNumber,
+          verificationPhone,
         );
 
       setSentPhoneNumber(
@@ -309,8 +360,10 @@ export function LoginForm({
 
       setCode("");
     } catch {
-      // AuthProvider exposes the
-      // user-facing error message.
+      /*
+       * AuthProvider exposes the
+       * appropriate error message.
+       */
     } finally {
       setIsSubmitting(false);
     }
@@ -320,14 +373,23 @@ export function LoginForm({
   function handleChangePhone() {
     resetErrors();
 
-    setStep("phone");
+    setStep(
+      "phone",
+    );
+
     setCode("");
+
     setCountdown(0);
-    setSentPhoneNumber(null);
+
+    setSentPhoneNumber(
+      null,
+    );
   }
 
 
-  if (isLoading) {
+  if (
+    isLoading
+  ) {
     return (
       <div className="flex min-h-80 items-center justify-center">
         <LoaderCircle
@@ -347,7 +409,7 @@ export function LoginForm({
 
   return (
     <div className="w-full">
-      <div className="mb-10">
+      <header className="mb-8 sm:mb-10">
         <div
           className="mb-5 h-px w-10 bg-elasi-gold"
           aria-hidden="true"
@@ -365,16 +427,31 @@ export function LoginForm({
 
         <p className="mt-3 max-w-md text-sm leading-7 text-elasi-muted">
           {step === "phone"
-            ? "برای ورود یا ساخت حساب، شماره موبایل خود را وارد کنید."
-            : "کد شش‌رقمی ارسال‌شده را وارد کنید."}
+            ? (
+              "برای ورود یا ساخت حساب، شماره موبایل خود را وارد کنید."
+            )
+            : (
+              "کد شش‌رقمی ارسال‌شده را وارد کنید."
+            )}
         </p>
-      </div>
+      </header>
 
 
       {displayedError ? (
         <div
           role="alert"
-          className="mb-6 rounded-2xl border border-red-900/10 bg-red-950/[0.035] px-4 py-3 text-sm leading-7 text-red-900"
+          className="
+            mb-6
+            rounded-2xl
+            border
+            border-red-900/10
+            bg-red-950/[0.035]
+            px-4
+            py-3
+            text-sm
+            leading-7
+            text-red-900
+          "
         >
           {displayedError}
         </div>
@@ -383,7 +460,9 @@ export function LoginForm({
 
       {step === "phone" ? (
         <form
-          onSubmit={handlePhoneSubmit}
+          onSubmit={
+            handlePhoneSubmit
+          }
           noValidate
           className="space-y-6"
         >
@@ -403,16 +482,41 @@ export function LoginForm({
               autoComplete="tel"
               dir="ltr"
               placeholder="09121234567"
-              value={phoneNumber}
-              disabled={isSubmitting}
-              onChange={(event) => {
+              value={
+                phoneNumber
+              }
+              disabled={
+                isSubmitting
+              }
+              onChange={(
+                event,
+              ) => {
                 resetErrors();
 
                 setPhoneNumber(
                   event.target.value,
                 );
               }}
-              className="h-14 w-full rounded-2xl border border-elasi-green/15 bg-white px-4 text-left text-base text-elasi-text outline-none transition focus:border-elasi-gold disabled:cursor-not-allowed disabled:opacity-60"
+              className="
+                h-14
+                w-full
+                rounded-2xl
+                border
+                border-elasi-green/15
+                bg-white
+                px-4
+                text-left
+                text-base
+                text-elasi-text
+                outline-none
+                transition
+                placeholder:text-elasi-muted/50
+                focus:border-elasi-gold
+                focus:ring-2
+                focus:ring-elasi-gold/10
+                disabled:cursor-not-allowed
+                disabled:opacity-60
+              "
             />
 
             <p className="mt-2 text-xs leading-6 text-elasi-muted">
@@ -420,10 +524,24 @@ export function LoginForm({
             </p>
           </div>
 
+
           <button
             type="submit"
-            disabled={isSubmitting}
-            className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-elasi-green px-6 text-sm font-semibold text-white transition hover:bg-elasi-gold disabled:cursor-not-allowed disabled:opacity-60"
+            disabled={
+              isSubmitting
+            }
+            className="
+              elasi-button
+              elasi-button--primary
+              h-14
+              w-full
+              rounded-full
+              px-6
+              text-sm
+              text-elasi-white
+              disabled:cursor-not-allowed
+              disabled:opacity-60
+            "
           >
             {isSubmitting ? (
               <>
@@ -434,11 +552,15 @@ export function LoginForm({
                   aria-hidden="true"
                 />
 
-                در حال ارسال کد
+                <span>
+                  در حال ارسال کد
+                </span>
               </>
             ) : (
               <>
-                دریافت کد ورود
+                <span>
+                  دریافت کد ورود
+                </span>
 
                 <ArrowLeft
                   size={17}
@@ -451,11 +573,22 @@ export function LoginForm({
         </form>
       ) : (
         <form
-          onSubmit={handleOtpSubmit}
+          onSubmit={
+            handleOtpSubmit
+          }
           noValidate
           className="space-y-6"
         >
-          <div className="rounded-2xl border border-elasi-green/10 bg-elasi-green/[0.025] px-4 py-3">
+          <div
+            className="
+              rounded-2xl
+              border
+              border-elasi-green/10
+              bg-elasi-green/[0.025]
+              px-4
+              py-3
+            "
+          >
             <div className="flex items-center justify-between gap-4">
               <div>
                 <p className="text-xs text-elasi-muted">
@@ -464,17 +597,29 @@ export function LoginForm({
 
                 <p
                   dir="ltr"
-                  className="mt-1 text-sm font-medium text-elasi-green"
+                  className="mt-1 text-right text-sm font-medium text-elasi-green"
                 >
-                  {formattedPhone}
+                  {verificationPhone}
                 </p>
               </div>
 
               <button
                 type="button"
-                onClick={handleChangePhone}
-                disabled={isSubmitting}
-                className="text-xs font-medium text-elasi-gold transition hover:text-elasi-green disabled:opacity-60"
+                onClick={
+                  handleChangePhone
+                }
+                disabled={
+                  isSubmitting
+                }
+                className="
+                  text-xs
+                  font-medium
+                  text-elasi-gold
+                  transition
+                  hover:text-elasi-green
+                  disabled:cursor-not-allowed
+                  disabled:opacity-60
+                "
               >
                 تغییر شماره
               </button>
@@ -500,8 +645,12 @@ export function LoginForm({
               maxLength={6}
               placeholder="------"
               value={code}
-              disabled={isSubmitting}
-              onChange={(event) => {
+              disabled={
+                isSubmitting
+              }
+              onChange={(
+                event,
+              ) => {
                 resetErrors();
 
                 setCode(
@@ -510,15 +659,49 @@ export function LoginForm({
                   ),
                 );
               }}
-              className="h-16 w-full rounded-2xl border border-elasi-green/15 bg-white px-5 text-center text-2xl font-semibold tracking-[0.45em] text-elasi-green outline-none transition focus:border-elasi-gold disabled:cursor-not-allowed disabled:opacity-60"
+              className="
+                h-16
+                w-full
+                rounded-2xl
+                border
+                border-elasi-green/15
+                bg-white
+                px-5
+                text-center
+                text-2xl
+                font-semibold
+                tracking-[0.45em]
+                text-elasi-green
+                outline-none
+                transition
+                placeholder:text-elasi-muted/35
+                focus:border-elasi-gold
+                focus:ring-2
+                focus:ring-elasi-gold/10
+                disabled:cursor-not-allowed
+                disabled:opacity-60
+              "
             />
           </div>
 
 
           <button
             type="submit"
-            disabled={isSubmitting}
-            className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-elasi-green px-6 text-sm font-semibold text-white transition hover:bg-elasi-gold disabled:cursor-not-allowed disabled:opacity-60"
+            disabled={
+              isSubmitting
+            }
+            className="
+              elasi-button
+              elasi-button--primary
+              h-14
+              w-full
+              rounded-full
+              px-6
+              text-sm
+              text-elasi-white
+              disabled:cursor-not-allowed
+              disabled:opacity-60
+            "
           >
             {isSubmitting ? (
               <>
@@ -529,11 +712,15 @@ export function LoginForm({
                   aria-hidden="true"
                 />
 
-                در حال تأیید
+                <span>
+                  در حال تأیید
+                </span>
               </>
             ) : (
               <>
-                تأیید و ورود
+                <span>
+                  تأیید و ورود
+                </span>
 
                 <Check
                   size={17}
@@ -545,7 +732,10 @@ export function LoginForm({
           </button>
 
 
-          <div className="flex min-h-8 items-center justify-center">
+          <div
+            className="flex min-h-8 items-center justify-center"
+            aria-live="polite"
+          >
             {countdown > 0 ? (
               <p className="text-xs text-elasi-muted">
                 ارسال مجدد کد تا{" "}
@@ -562,8 +752,18 @@ export function LoginForm({
                 onClick={() => {
                   void handleResend();
                 }}
-                disabled={!canResend}
-                className="text-xs font-medium text-elasi-gold transition hover:text-elasi-green disabled:cursor-not-allowed disabled:opacity-50"
+                disabled={
+                  !canResend
+                }
+                className="
+                  text-xs
+                  font-medium
+                  text-elasi-gold
+                  transition
+                  hover:text-elasi-green
+                  disabled:cursor-not-allowed
+                  disabled:opacity-50
+                "
               >
                 ارسال مجدد کد
               </button>
