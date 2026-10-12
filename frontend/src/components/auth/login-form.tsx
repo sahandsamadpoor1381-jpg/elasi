@@ -69,6 +69,54 @@ function normalizeDigits(
 }
 
 
+function sanitizeIranPhoneInput(
+  value: string,
+): string {
+  let normalized =
+    normalizeDigits(value)
+      .replace(
+        /[()\s-]/g,
+        "",
+      )
+      .replace(
+        /[^\d+]/g,
+        "",
+      );
+
+
+  const startsWithPlus =
+    normalized.startsWith("+");
+
+
+  normalized =
+    `${startsWithPlus ? "+" : ""}${normalized.replace(/\+/g, "")}`;
+
+
+  let maxLength = 11;
+
+
+  if (
+    normalized.startsWith("0098")
+  ) {
+    maxLength = 14;
+  } else if (
+    normalized.startsWith("+98")
+  ) {
+    maxLength = 13;
+  } else if (
+    normalized.startsWith("98")
+  ) {
+    maxLength = 12;
+  }
+
+
+  return normalized.slice(
+    0,
+    maxLength,
+  );
+}
+
+
 function isValidIranianPhone(
   value: string,
 ): boolean {
@@ -273,9 +321,8 @@ export function LoginForm({
       );
     } catch {
       /*
-       * AuthProvider already converts
-       * API errors into user-facing
-       * Persian messages.
+       * AuthProvider converts API errors
+       * into user-facing Persian messages.
        */
     } finally {
       setIsSubmitting(false);
@@ -480,7 +527,9 @@ export function LoginForm({
               type="tel"
               inputMode="tel"
               autoComplete="tel"
+              enterKeyHint="send"
               dir="ltr"
+              maxLength={14}
               placeholder="09121234567"
               value={
                 phoneNumber
@@ -494,7 +543,9 @@ export function LoginForm({
                 resetErrors();
 
                 setPhoneNumber(
-                  event.target.value,
+                  sanitizeIranPhoneInput(
+                    event.target.value,
+                  ),
                 );
               }}
               className="
@@ -641,6 +692,7 @@ export function LoginForm({
               type="text"
               inputMode="numeric"
               autoComplete="one-time-code"
+              enterKeyHint="done"
               dir="ltr"
               maxLength={6}
               placeholder="------"
