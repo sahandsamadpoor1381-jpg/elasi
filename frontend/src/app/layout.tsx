@@ -5,6 +5,7 @@ import { AuthProvider } from "@/components/auth/auth-provider";
 import { CartProvider } from "@/components/cart/cart-provider";
 import { SiteFooter } from "@/components/site-footer/site-footer";
 import { SiteHeader } from "@/components/site-header/site-header";
+import { WishlistProvider } from "@/components/wishlist/wishlist-provider";
 
 import "./globals.css";
 
@@ -65,13 +66,15 @@ export default function RootLayout({
       <body>
         <AuthProvider>
           <CartProvider>
-            <div className="flex min-h-screen flex-col">
-              <SiteHeader />
+            <WishlistProvider>
+              <div className="flex min-h-screen flex-col">
+                <SiteHeader />
 
-              <div className="flex-1">{children}</div>
+                <div className="flex-1">{children}</div>
 
-              <SiteFooter />
-            </div>
+                <SiteFooter />
+              </div>
+            </WishlistProvider>
           </CartProvider>
         </AuthProvider>
       </body>

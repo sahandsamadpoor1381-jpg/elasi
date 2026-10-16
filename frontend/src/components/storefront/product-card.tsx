@@ -1,11 +1,13 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import type { Product } from "@/types/catalog";
+import { WishlistButton } from "@/components/wishlist/wishlist-button";
+
+import type { ProductSummary } from "@/types/catalog";
 
 
 type ProductCardProps = {
-  product: Product;
+  product: ProductSummary;
 };
 
 
@@ -33,21 +35,33 @@ function getCategoryLabel(slug: string, fallback: string): string {
 
 export function ProductCard({ product }: ProductCardProps) {
   const primaryImage =
+    product.primary_image ??
     product.images.find((image) => image.is_primary) ??
     product.images[0];
 
-  const activeVariants = product.variants.filter(
-    (variant) => variant.available > 0,
-  );
+  const isAvailable = product.is_available;
 
-  const referenceVariant =
-    activeVariants[0] ??
-    product.variants[0];
+  const priceFrom =
+    product.price_from_rial ??
+    product.variants[0]?.price_rial ??
+    null;
 
-  const isAvailable = activeVariants.length > 0;
+  const priceTo = product.price_to_rial ?? priceFrom;
+
+  const hasPriceRange =
+    priceFrom !== null &&
+    priceTo !== null &&
+    priceTo > priceFrom;
 
   return (
-    <article className="group w-full max-w-[360px]">
+    <article className="group relative w-full max-w-[360px]">
+      <div className="absolute left-4 top-4 z-10">
+        <WishlistButton
+          productSlug={product.slug}
+          productName={product.name}
+        />
+      </div>
+
       <Link
         href={`/products/${product.slug}`}
         className="block"
@@ -106,9 +120,11 @@ export function ProductCard({ product }: ProductCardProps) {
           ) : null}
 
           <div className="mt-4 flex items-center justify-between gap-4 border-t border-elasi-green/10 pt-4">
-            {referenceVariant ? (
+            {priceFrom !== null ? (
               <p className="text-price text-elasi-green">
-                {formatToman(referenceVariant.price_rial)} تومان
+                {hasPriceRange
+                  ? `از ${formatToman(priceFrom)} تومان`
+                  : `${formatToman(priceFrom)} تومان`}
               </p>
             ) : (
               <p className="text-sm text-elasi-muted">

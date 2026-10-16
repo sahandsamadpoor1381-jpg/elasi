@@ -134,6 +134,16 @@ const CUSTOMER_MESSAGES: Record<string, string> = {
   invalid_order_state:
     "وضعیت سفارش اجازه‌ی این عملیات را نمی‌دهد.",
 
+  // Wishlist
+  product_required:
+    "محصول موردنظر مشخص نشده است. لطفاً صفحه را دوباره باز کنید.",
+  product_not_found:
+    "این محصول یافت نشد.",
+  product_unavailable:
+    "این محصول در حال حاضر قابل ذخیره یا خرید نیست.",
+  wishlist_item_not_found:
+    "این محصول در فهرست علاقه‌مندی‌های شما نیست.",
+
   // Transport / server
   network_error:
     "اتصال به سرور برقرار نشد. اتصال اینترنت خود را بررسی کنید و دوباره تلاش کنید.",

@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { useCart } from "@/components/cart/cart-provider";
+import { WishlistButton } from "@/components/wishlist/wishlist-button";
 import type {
   Product,
   ProductVariant,
@@ -380,6 +381,13 @@ export function ProductPurchasePanel({
             محصول به سبد خرید اضافه شد.
           </p>
         ) : null}
+
+        <WishlistButton
+          productSlug={product.slug}
+          productName={product.name}
+          variant="full"
+          className="mt-4"
+        />
 
         {cartError ? (
           <p

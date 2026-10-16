@@ -30,10 +30,13 @@ urlpatterns = [
         include("apps.orders.urls"),
     ),
     path(
-    "api/v1/auth/",
-    include("apps.accounts.urls"),
-),
-
+        "api/v1/",
+        include("apps.wishlist.urls"),
+    ),
+    path(
+        "api/v1/auth/",
+        include("apps.accounts.urls"),
+    ),
 ]
 
 
