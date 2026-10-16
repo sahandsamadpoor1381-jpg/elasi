@@ -258,9 +258,9 @@ class CheckoutAPITests(APITestCase):
                 "09120000000"
             ),
             "province": (
-                "West Azerbaijan"
+                "آذربایجان غربی"
             ),
-            "city": "Urmia",
+            "city": "ارومیه",
             "postal_code": (
                 "1234567890"
             ),

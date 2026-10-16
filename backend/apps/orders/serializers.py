@@ -1,6 +1,24 @@
 from rest_framework import serializers
 
+from apps.core.geo import (
+    InvalidAddress,
+    validate_iran_province_city,
+)
+from apps.core.validators import (
+    InvalidPhoneNumber,
+    InvalidPostalCode,
+    normalize_digits,
+    normalize_iran_phone,
+    normalize_iran_postal_code,
+    normalize_whitespace,
+)
+
 from .models import Order, OrderItem
+
+
+ADDRESS_LINE_MAX_LENGTH = 500
+
+CUSTOMER_NOTE_MAX_LENGTH = 1000
 
 
 class CheckoutSerializer(
@@ -47,6 +65,159 @@ class CheckoutSerializer(
         allow_blank=True,
         default="",
     )
+
+    def validate_recipient_name(
+        self,
+        value: str,
+    ) -> str:
+        normalized = normalize_whitespace(
+            value,
+        )
+
+        if not normalized:
+            raise serializers.ValidationError(
+                "Recipient name is required.",
+            )
+
+        return normalized
+
+    def validate_phone_number(
+        self,
+        value: str,
+    ) -> str:
+        """
+        Authoritative Iranian mobile validation.
+
+        Accepts Persian, Arabic and Latin digit spellings and
+        stores the normalized ``+98`` form.
+        """
+
+        try:
+            return normalize_iran_phone(
+                value,
+            )
+        except InvalidPhoneNumber as exc:
+            raise serializers.ValidationError(
+                "Enter a valid Iranian mobile number.",
+            ) from exc
+
+    def validate_postal_code(
+        self,
+        value: str,
+    ) -> str:
+        """
+        Authoritative postal-code validation: exactly ten digits,
+        accepting Persian and Arabic digits and storing ASCII.
+        """
+
+        try:
+            return normalize_iran_postal_code(
+                value,
+            )
+        except InvalidPostalCode as exc:
+            raise serializers.ValidationError(
+                "Postal code must be exactly 10 digits.",
+            ) from exc
+
+    def validate_address_line(
+        self,
+        value: str,
+    ) -> str:
+        normalized = normalize_whitespace(
+            value,
+        )
+
+        if not normalized:
+            raise serializers.ValidationError(
+                "Address line is required.",
+            )
+
+        if (
+            len(normalized)
+            > ADDRESS_LINE_MAX_LENGTH
+        ):
+            raise serializers.ValidationError(
+                (
+                    "Address line must be at most "
+                    f"{ADDRESS_LINE_MAX_LENGTH} characters."
+                ),
+            )
+
+        return normalized
+
+    def _normalize_short_text(
+        self,
+        value: str,
+    ) -> str:
+        if not value:
+            return ""
+
+        return normalize_whitespace(
+            normalize_digits(value),
+        )
+
+    def validate_building_number(
+        self,
+        value: str,
+    ) -> str:
+        return self._normalize_short_text(
+            value,
+        )
+
+    def validate_unit_number(
+        self,
+        value: str,
+    ) -> str:
+        return self._normalize_short_text(
+            value,
+        )
+
+    def validate_customer_note(
+        self,
+        value: str,
+    ) -> str:
+        normalized = normalize_whitespace(
+            value,
+        )
+
+        if (
+            len(normalized)
+            > CUSTOMER_NOTE_MAX_LENGTH
+        ):
+            raise serializers.ValidationError(
+                (
+                    "Customer note must be at most "
+                    f"{CUSTOMER_NOTE_MAX_LENGTH} characters."
+                ),
+            )
+
+        return normalized
+
+    def validate(
+        self,
+        attrs: dict,
+    ) -> dict:
+        try:
+            (
+                province,
+                city,
+            ) = validate_iran_province_city(
+                attrs.get("province", ""),
+                attrs.get("city", ""),
+            )
+        except InvalidAddress as exc:
+            raise serializers.ValidationError(
+                {
+                    exc.field: [
+                        str(exc),
+                    ],
+                },
+            ) from exc
+
+        attrs["province"] = province
+        attrs["city"] = city
+
+        return attrs
 
 
 class OrderItemSerializer(
