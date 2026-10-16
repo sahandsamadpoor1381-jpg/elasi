@@ -66,6 +66,3 @@ class PhoneOTPState(models.Model):
 
     def __str__(self) -> str:
         return self.phone_number
-
-    def __str__(self) -> str:
-        return self.email or self.username

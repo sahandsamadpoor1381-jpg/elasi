@@ -12,21 +12,21 @@ from django.contrib.auth.hashers import (
 from django.db import transaction
 from django.utils import timezone
 
+from apps.core.validators import (
+    ARABIC_DIGITS,
+    ASCII_DIGITS,
+    DIGIT_TRANSLATION,
+    PERSIAN_DIGITS,
+    InvalidPhoneNumber,
+    normalize_digits,
+    normalize_iran_phone as normalize_iran_phone_core,
+)
+
 from .models import PhoneOTPState
 from .sms import send_otp_code
 
 
 User = get_user_model()
-
-
-PERSIAN_DIGITS = "۰۱۲۳۴۵۶۷۸۹"
-ARABIC_DIGITS = "٠١٢٣٤٥٦٧٨٩"
-ASCII_DIGITS = "0123456789"
-
-DIGIT_TRANSLATION = str.maketrans(
-    PERSIAN_DIGITS + ARABIC_DIGITS,
-    ASCII_DIGITS + ASCII_DIGITS,
-)
 
 
 class OTPError(Exception):
@@ -51,68 +51,27 @@ class OTPRequestResult:
     resend_available_at: datetime
 
 
-def normalize_digits(
-    value: str,
-) -> str:
-    """
-    Convert Persian and Arabic digits to ASCII digits.
-
-    Examples:
-        ۰۹۱۲۱۲۳۴۵۶۷ -> 09121234567
-        ٠٩١٢١٢٣٤٥٦٧ -> 09121234567
-        ۱۲۳۴۵۶       -> 123456
-    """
-
-    return value.translate(
-        DIGIT_TRANSLATION,
-    )
-
-
 def normalize_iran_phone(
     value: str,
 ) -> str:
     """
-    Normalize supported Iranian mobile number
-    formats to E.164-style +98 format.
+    Normalize supported Iranian mobile number formats to
+    E.164-style ``+98`` format.
 
-    Examples:
-        09121234567
-        +989121234567
-        00989121234567
-        ۹۱۲...
-        ۰۹۱۲...
-
-    Result:
-        +989121234567
+    Thin wrapper around ``apps.core.validators.normalize_iran_phone``
+    that preserves this module's historical ``OTPError`` contract
+    (code ``invalid_phone_number``) for callers of the OTP flow.
     """
 
-    digits = re.sub(
-        r"\D",
-        "",
-        normalize_digits(
-            value.strip(),
-        ),
-    )
-
-    if digits.startswith("0098"):
-        digits = digits[4:]
-
-    elif digits.startswith("98"):
-        digits = digits[2:]
-
-    elif digits.startswith("0"):
-        digits = digits[1:]
-
-    if not re.fullmatch(
-        r"9\d{9}",
-        digits,
-    ):
+    try:
+        return normalize_iran_phone_core(
+            value,
+        )
+    except InvalidPhoneNumber as exc:
         raise OTPError(
             "invalid_phone_number",
             "Invalid Iranian mobile number.",
-        )
-
-    return f"+98{digits}"
+        ) from exc
 
 
 def generate_otp_code() -> str:
