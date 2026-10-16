@@ -123,6 +123,11 @@ class Order(models.Model):
         blank=True,
     )
 
+    inventory_consumed_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
     paid_at = models.DateTimeField(
         null=True,
         blank=True,

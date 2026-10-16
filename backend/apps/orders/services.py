@@ -4,11 +4,15 @@ from uuid import UUID
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import transaction
+from django.db.models import Q
 from django.utils import timezone
 
 from apps.cart.models import Cart, CartItem
 from apps.catalog.models import Product, ProductVariant
-from apps.inventory.models import InventoryBalance
+from apps.inventory.models import (
+    InventoryBalance,
+    StockMovement,
+)
 
 from .models import Order, OrderItem
 
@@ -74,6 +78,35 @@ def get_payment_reservation_duration() -> timedelta:
 
     return timedelta(
         minutes=minutes,
+    )
+
+
+def get_order_reservation_deadline(
+    order: Order,
+):
+    """
+    Effective reservation deadline for an order.
+
+    Orders created by ``checkout_cart`` always carry an explicit
+    ``reservation_expires_at``. Legacy rows created before that
+    field existed may have a null value; for those the deadline
+    falls back to ``created_at + reservation duration`` so that:
+
+    - ``expire_pending_order`` and ``expire_stale_pending_orders``
+      can release their reservations instead of leaking them, and
+    - ``mark_order_paid`` applies exactly the same late-payment
+      policy as the expiration job.
+
+    The ``reconcile_order_reservations`` management command can
+    backfill the explicit value after an operator has reviewed it.
+    """
+
+    if order.reservation_expires_at is not None:
+        return order.reservation_expires_at
+
+    return (
+        order.created_at
+        + get_payment_reservation_duration()
     )
 
 
@@ -190,6 +223,8 @@ def _release_inventory_for_locked_order(
                 ),
             )
 
+    release_movements = []
+
     for item in order_items:
         inventory = (
             inventory_by_variant[
@@ -208,6 +243,23 @@ def _release_inventory_for_locked_order(
             ),
         )
 
+        release_movements.append(
+            StockMovement(
+                variant_id=item.variant_id,
+                order=order,
+                reason=(
+                    StockMovement.Reason.RELEASE
+                ),
+                quantity=item.quantity,
+                on_hand_delta=0,
+                reserved_delta=-item.quantity,
+            ),
+        )
+
+    StockMovement.objects.bulk_create(
+        release_movements,
+    )
+
     order.inventory_released_at = (
         released_at
     )
@@ -220,6 +272,241 @@ def _release_inventory_for_locked_order(
     )
 
     return True
+
+
+def _consume_inventory_for_locked_order(
+    order: Order,
+    *,
+    consumed_at,
+) -> bool:
+    """
+    Consume an order's inventory reservation exactly once:
+    decrease both ``on_hand`` and ``reserved`` by the ordered
+    quantities.
+
+    The caller must already hold a SELECT FOR UPDATE lock on the
+    Order row and run inside transaction.atomic().
+
+    Returns False when the reservation was already consumed.
+    """
+
+    if (
+        order.inventory_consumed_at
+        is not None
+    ):
+        return False
+
+    order_items = list(
+        OrderItem.objects
+        .filter(
+            order=order,
+        )
+        .order_by(
+            "variant_id",
+        )
+    )
+
+    if not order_items:
+        raise OrderLifecycleError(
+            "order_has_no_items",
+            "Order has no items.",
+        )
+
+    variant_ids = [
+        item.variant_id
+        for item in order_items
+    ]
+
+    inventory_rows = list(
+        InventoryBalance.objects
+        .select_for_update()
+        .filter(
+            variant_id__in=variant_ids,
+        )
+        .order_by(
+            "variant_id",
+        )
+    )
+
+    inventory_by_variant = {
+        inventory.variant_id:
+            inventory
+        for inventory in inventory_rows
+    }
+
+    for item in order_items:
+        inventory = (
+            inventory_by_variant.get(
+                item.variant_id,
+            )
+        )
+
+        if inventory is None:
+            raise OrderLifecycleError(
+                "inventory_missing",
+                (
+                    "Inventory balance is missing "
+                    f"for SKU {item.sku}."
+                ),
+            )
+
+        if (
+            inventory.reserved
+            < item.quantity
+        ):
+            raise OrderLifecycleError(
+                "inventory_reservation_inconsistent",
+                (
+                    "Reserved inventory is lower "
+                    "than the order reservation "
+                    f"for SKU {item.sku}."
+                ),
+            )
+
+        if (
+            inventory.on_hand
+            < item.quantity
+        ):
+            raise OrderLifecycleError(
+                "inventory_reservation_inconsistent",
+                (
+                    "On-hand inventory is lower "
+                    "than the fulfilled quantity "
+                    f"for SKU {item.sku}."
+                ),
+            )
+
+    consume_movements = []
+
+    for item in order_items:
+        inventory = (
+            inventory_by_variant[
+                item.variant_id
+            ]
+        )
+
+        inventory.on_hand -= (
+            item.quantity
+        )
+
+        inventory.reserved -= (
+            item.quantity
+        )
+
+        inventory.save(
+            update_fields=(
+                "on_hand",
+                "reserved",
+                "updated_at",
+            ),
+        )
+
+        consume_movements.append(
+            StockMovement(
+                variant_id=item.variant_id,
+                order=order,
+                reason=(
+                    StockMovement
+                    .Reason
+                    .FULFILLMENT
+                ),
+                quantity=item.quantity,
+                on_hand_delta=-item.quantity,
+                reserved_delta=-item.quantity,
+            ),
+        )
+
+    StockMovement.objects.bulk_create(
+        consume_movements,
+    )
+
+    order.inventory_consumed_at = (
+        consumed_at
+    )
+
+    order.save(
+        update_fields=(
+            "inventory_consumed_at",
+            "updated_at",
+        ),
+    )
+
+    return True
+
+
+@transaction.atomic
+def fulfill_order(
+    *,
+    order_id: int,
+    fulfilled_at=None,
+) -> Order:
+    """
+    Fulfillment-side inventory consumption.
+
+    A successful payment must NOT trigger this automatically:
+    this service represents the business-defined fulfillment
+    event (goods physically leaving the warehouse). It consumes
+    the order's reservation exactly once:
+
+    - ``on_hand`` and ``reserved`` both decrease by the ordered
+      quantity (preserving ``reserved <= on_hand``),
+    - a ``StockMovement`` (reason ``fulfillment``) records the
+      consumption for auditing,
+    - ``Order.inventory_consumed_at`` guards against duplicate
+      fulfillment.
+
+    Permitted order states: ``paid`` and ``processing``. The
+    service deliberately does not change the order status and
+    does not fabricate any shipment/tracking state; shipping
+    transitions belong to the fulfillment/shipping module.
+
+    Lock ordering (consistent with checkout and release paths):
+    Order row first, then InventoryBalance rows by variant_id.
+    """
+
+    effective_consumed_at = (
+        fulfilled_at
+        or timezone.now()
+    )
+
+    try:
+        order = (
+            Order.objects
+            .select_for_update()
+            .get(
+                pk=order_id,
+            )
+        )
+    except Order.DoesNotExist as exc:
+        raise OrderLifecycleError(
+            "order_not_found",
+            "Order was not found.",
+        ) from exc
+
+    if (
+        order.inventory_consumed_at
+        is not None
+    ):
+        return order
+
+    if order.status not in (
+        Order.Status.PAID,
+        Order.Status.PROCESSING,
+    ):
+        raise OrderLifecycleError(
+            "invalid_order_state",
+            (
+                "Only a paid or processing "
+                "order can be fulfilled."
+            ),
+        )
+
+    _consume_inventory_for_locked_order(
+        order,
+        consumed_at=effective_consumed_at,
+    )
+
+    return order
 
 
 @transaction.atomic
@@ -433,6 +720,8 @@ def checkout_cart(
         order_items,
     )
 
+    reservation_movements = []
+
     for item in cart_items:
         inventory = (
             inventory_by_variant[
@@ -450,6 +739,25 @@ def checkout_cart(
                 "updated_at",
             ),
         )
+
+        reservation_movements.append(
+            StockMovement(
+                variant_id=item.variant_id,
+                order=order,
+                reason=(
+                    StockMovement
+                    .Reason
+                    .RESERVATION
+                ),
+                quantity=item.quantity,
+                on_hand_delta=0,
+                reserved_delta=item.quantity,
+            ),
+        )
+
+    StockMovement.objects.bulk_create(
+        reservation_movements,
+    )
 
     if (
         cart.user_id
@@ -578,20 +886,14 @@ def expire_pending_order(
                 ),
             )
 
-        if (
-            order.reservation_expires_at
-            is None
-        ):
-            raise OrderLifecycleError(
-                "reservation_deadline_missing",
-                (
-                    "Order reservation expiration "
-                    "time is missing."
-                ),
+        reservation_deadline = (
+            get_order_reservation_deadline(
+                order,
             )
+        )
 
         if (
-            order.reservation_expires_at
+            reservation_deadline
             > effective_now
         ):
             raise OrderLifecycleError(
@@ -674,11 +976,14 @@ def mark_order_paid(
                 ),
             )
 
+        reservation_deadline = (
+            get_order_reservation_deadline(
+                order,
+            )
+        )
+
         if (
-            order.reservation_expires_at
-            is not None
-            and
-            order.reservation_expires_at
+            reservation_deadline
             <= effective_paid_at
         ):
             _release_inventory_for_locked_order(
@@ -768,15 +1073,29 @@ def expire_stale_pending_orders(
     if limit <= 0:
         return 0
 
+    fallback_deadline_cutoff = (
+        effective_now
+        - get_payment_reservation_duration()
+    )
+
     order_ids = list(
         Order.objects
         .filter(
             status=(
                 Order.Status.PENDING_PAYMENT
             ),
-            reservation_expires_at__isnull=False,
-            reservation_expires_at__lte=(
-                effective_now
+        )
+        .filter(
+            Q(
+                reservation_expires_at__lte=(
+                    effective_now
+                ),
+            )
+            | Q(
+                reservation_expires_at__isnull=True,
+                created_at__lte=(
+                    fallback_deadline_cutoff
+                ),
             ),
         )
         .order_by(
@@ -798,9 +1117,9 @@ def expire_stale_pending_orders(
                 now=effective_now,
             )
         except OrderLifecycleError as error:
-            if (
-                error.code
-                == "invalid_order_state"
+            if error.code in (
+                "invalid_order_state",
+                "reservation_not_expired",
             ):
                 continue
 
