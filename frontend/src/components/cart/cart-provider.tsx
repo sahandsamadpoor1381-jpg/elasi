@@ -18,7 +18,10 @@ import {
   getCart,
   updateCartItem,
 } from "@/lib/cart-api";
-import type { Cart } from "@/types/cart";
+
+import type {
+  Cart,
+} from "@/types/cart";
 
 
 const CART_TOKEN_STORAGE_KEY =
@@ -27,7 +30,9 @@ const CART_TOKEN_STORAGE_KEY =
 
 type CartContextValue = {
   cart: Cart | null;
+
   isLoading: boolean;
+
   error: string | null;
 
   addItem: (
@@ -44,7 +49,11 @@ type CartContextValue = {
     itemId: number,
   ) => Promise<void>;
 
-  refreshCart: () => Promise<void>;
+  refreshCart:
+    () => Promise<void>;
+
+  clearCart:
+    () => void;
 };
 
 
@@ -62,26 +71,40 @@ type CartProviderProps = {
 export function CartProvider({
   children,
 }: CartProviderProps) {
-  const [cart, setCart] =
-    useState<Cart | null>(null);
+  const [
+    cart,
+    setCart,
+  ] =
+    useState<Cart | null>(
+      null,
+    );
 
-  const [isLoading, setIsLoading] =
+
+  const [
+    isLoading,
+    setIsLoading,
+  ] =
     useState(true);
 
-  const [error, setError] =
-    useState<string | null>(null);
+
+  const [
+    error,
+    setError,
+  ] =
+    useState<string | null>(
+      null,
+    );
 
 
-  const clearStoredCart = useCallback(
-    () => {
+  const clearStoredCart =
+    useCallback(() => {
       window.localStorage.removeItem(
         CART_TOKEN_STORAGE_KEY,
       );
 
       setCart(null);
-    },
-    [],
-  );
+      setError(null);
+    }, []);
 
 
   const refreshCart =
@@ -91,103 +114,163 @@ export function CartProvider({
           CART_TOKEN_STORAGE_KEY,
         );
 
+
       if (!token) {
         setCart(null);
+        setError(null);
+
         return;
       }
+
 
       try {
         const currentCart =
           await getCart(token);
 
-        setCart(currentCart);
+        setCart(
+          currentCart,
+        );
+
         setError(null);
-      } catch (requestError) {
+      } catch (
+        requestError
+      ) {
         if (
           requestError instanceof
             CartApiError &&
-          requestError.status === 404
+          requestError.status ===
+            404
         ) {
           clearStoredCart();
+
           return;
         }
 
+
         setError(
-          requestError instanceof Error
+          requestError instanceof
+            Error
             ? requestError.message
             : "خطا در دریافت سبد خرید.",
         );
       }
-    }, [clearStoredCart]);
+    }, [
+      clearStoredCart,
+    ]);
 
 
   useEffect(() => {
-    let isMounted = true;
+    let isMounted =
+      true;
+
 
     async function restoreCart() {
       try {
         await refreshCart();
       } finally {
-        if (isMounted) {
-          setIsLoading(false);
+        if (
+          isMounted
+        ) {
+          setIsLoading(
+            false,
+          );
         }
       }
     }
 
+
     void restoreCart();
 
+
     return () => {
-      isMounted = false;
+      isMounted =
+        false;
     };
-  }, [refreshCart]);
+  }, [
+    refreshCart,
+  ]);
 
 
   const ensureCart =
-    useCallback(async (): Promise<Cart> => {
-      if (cart) {
-        return cart;
-      }
+    useCallback(
+      async (): Promise<Cart> => {
+        if (cart) {
+          return cart;
+        }
 
-      const storedToken =
-        window.localStorage.getItem(
+
+        const storedToken =
+          window.localStorage.getItem(
+            CART_TOKEN_STORAGE_KEY,
+          );
+
+
+        if (
+          storedToken
+        ) {
+          try {
+            const existingCart =
+              await getCart(
+                storedToken,
+              );
+
+
+            setCart(
+              existingCart,
+            );
+
+            setError(
+              null,
+            );
+
+
+            return existingCart;
+          } catch (
+            requestError
+          ) {
+            if (
+              !(
+                requestError instanceof
+                  CartApiError &&
+                requestError.status ===
+                  404
+              )
+            ) {
+              throw requestError;
+            }
+
+
+            clearStoredCart();
+          }
+        }
+
+
+        const newCart =
+          await createCart();
+
+
+        window.localStorage.setItem(
           CART_TOKEN_STORAGE_KEY,
+          newCart.token,
         );
 
-      if (storedToken) {
-        try {
-          const existingCart =
-            await getCart(storedToken);
 
-          setCart(existingCart);
+        setCart(
+          newCart,
+        );
 
-          return existingCart;
-        } catch (requestError) {
-          if (
-            !(
-              requestError instanceof
-                CartApiError &&
-              requestError.status === 404
-            )
-          ) {
-            throw requestError;
-          }
+        setError(
+          null,
+        );
 
-          clearStoredCart();
-        }
-      }
 
-      const newCart =
-        await createCart();
-
-      window.localStorage.setItem(
-        CART_TOKEN_STORAGE_KEY,
-        newCart.token,
-      );
-
-      setCart(newCart);
-
-      return newCart;
-    }, [cart, clearStoredCart]);
+        return newCart;
+      },
+      [
+        cart,
+        clearStoredCart,
+      ],
+    );
 
 
   const addItem =
@@ -198,9 +281,11 @@ export function CartProvider({
       ): Promise<Cart> => {
         setError(null);
 
+
         try {
           const activeCart =
             await ensureCart();
+
 
           const updatedCart =
             await addCartItem(
@@ -209,29 +294,42 @@ export function CartProvider({
               quantity,
             );
 
-          setCart(updatedCart);
+
+          setCart(
+            updatedCart,
+          );
+
 
           return updatedCart;
-        } catch (requestError) {
+        } catch (
+          requestError
+        ) {
           const message =
             requestError instanceof
-            CartApiError &&
+              CartApiError &&
             requestError.code ===
               "stock_exceeded"
               ? `موجودی کافی نیست. موجودی قابل فروش: ${
                   requestError.available ??
                   0
                 }`
-              : requestError instanceof Error
+              : requestError instanceof
+                    Error
                 ? requestError.message
                 : "افزودن محصول به سبد خرید انجام نشد.";
 
-          setError(message);
+
+          setError(
+            message,
+          );
+
 
           throw requestError;
         }
       },
-      [ensureCart],
+      [
+        ensureCart,
+      ],
     );
 
 
@@ -247,20 +345,54 @@ export function CartProvider({
           );
         }
 
+
         setError(null);
 
-        const updatedCart =
-          await updateCartItem(
-            cart.token,
-            itemId,
-            quantity,
+
+        try {
+          const updatedCart =
+            await updateCartItem(
+              cart.token,
+              itemId,
+              quantity,
+            );
+
+
+          setCart(
+            updatedCart,
           );
 
-        setCart(updatedCart);
 
-        return updatedCart;
+          return updatedCart;
+        } catch (
+          requestError
+        ) {
+          const message =
+            requestError instanceof
+              CartApiError &&
+            requestError.code ===
+              "stock_exceeded"
+              ? `موجودی کافی نیست. موجودی قابل فروش: ${
+                  requestError.available ??
+                  0
+                }`
+              : requestError instanceof
+                    Error
+                ? requestError.message
+                : "تغییر تعداد محصول انجام نشد.";
+
+
+          setError(
+            message,
+          );
+
+
+          throw requestError;
+        }
       },
-      [cart],
+      [
+        cart,
+      ],
     );
 
 
@@ -273,16 +405,40 @@ export function CartProvider({
           return;
         }
 
+
         setError(null);
 
-        await deleteCartItem(
-          cart.token,
-          itemId,
-        );
 
-        await refreshCart();
+        try {
+          await deleteCartItem(
+            cart.token,
+            itemId,
+          );
+
+
+          await refreshCart();
+        } catch (
+          requestError
+        ) {
+          const message =
+            requestError instanceof
+              Error
+              ? requestError.message
+              : "حذف محصول از سبد خرید انجام نشد.";
+
+
+          setError(
+            message,
+          );
+
+
+          throw requestError;
+        }
       },
-      [cart, refreshCart],
+      [
+        cart,
+        refreshCart,
+      ],
     );
 
 
@@ -290,12 +446,21 @@ export function CartProvider({
     useMemo<CartContextValue>(
       () => ({
         cart,
+
         isLoading,
+
         error,
+
         addItem,
+
         updateItemQuantity,
+
         removeItem,
+
         refreshCart,
+
+        clearCart:
+          clearStoredCart,
       }),
       [
         cart,
@@ -305,27 +470,35 @@ export function CartProvider({
         updateItemQuantity,
         removeItem,
         refreshCart,
+        clearStoredCart,
       ],
     );
 
 
   return (
-    <CartContext.Provider value={value}>
+    <CartContext.Provider
+      value={value}
+    >
       {children}
     </CartContext.Provider>
   );
 }
 
 
-export function useCart(): CartContextValue {
+export function useCart():
+  CartContextValue {
   const context =
-    useContext(CartContext);
+    useContext(
+      CartContext,
+    );
+
 
   if (!context) {
     throw new Error(
       "useCart must be used inside CartProvider.",
     );
   }
+
 
   return context;
 }

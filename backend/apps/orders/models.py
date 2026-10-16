@@ -33,6 +33,10 @@ class Order(models.Model):
             "cancelled",
             "Cancelled",
         )
+        EXPIRED = (
+            "expired",
+            "Expired",
+        )
 
     class ShippingMethod(models.TextChoices):
         POSTAL = (
@@ -105,6 +109,32 @@ class Order(models.Model):
     )
 
     customer_note = models.TextField(
+        blank=True,
+    )
+
+    reservation_expires_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        db_index=True,
+    )
+
+    inventory_released_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    paid_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    cancelled_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    expired_at = models.DateTimeField(
+        null=True,
         blank=True,
     )
 
