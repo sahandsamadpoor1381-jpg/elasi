@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 
 import { AuthProvider } from "@/components/auth/auth-provider";
 import { CartProvider } from "@/components/cart/cart-provider";
+import { SiteFooter } from "@/components/site-footer/site-footer";
 import { SiteHeader } from "@/components/site-header/site-header";
 
 import "./globals.css";
@@ -64,9 +65,13 @@ export default function RootLayout({
       <body>
         <AuthProvider>
           <CartProvider>
-            <SiteHeader />
+            <div className="flex min-h-screen flex-col">
+              <SiteHeader />
 
-            {children}
+              <div className="flex-1">{children}</div>
+
+              <SiteFooter />
+            </div>
           </CartProvider>
         </AuthProvider>
       </body>

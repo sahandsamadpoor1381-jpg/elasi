@@ -50,9 +50,10 @@ export function MobileHeader() {
             </Link>
 
             <div className="flex items-center justify-self-end gap-1">
-              <button
-                type="button"
-                aria-label="باز کردن جستجو"
+              <Link
+                href="/search"
+                aria-label="جست‌وجو در محصولات"
+                title="جست‌وجو در محصولات"
                 className="flex size-11 items-center justify-center rounded-full text-elasi-green transition-colors hover:bg-elasi-green/5 hover:text-elasi-gold"
               >
                 <Search
@@ -60,7 +61,7 @@ export function MobileHeader() {
                   strokeWidth={1.7}
                   aria-hidden="true"
                 />
-              </button>
+              </Link>
 
               <CartLink className="size-11" />
             </div>

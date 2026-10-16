@@ -15,9 +15,10 @@ export function HeaderActions() {
       className="flex items-center gap-1"
       aria-label="عملیات حساب و خرید"
     >
-      <button
-        type="button"
-        aria-label="باز کردن جستجو"
+      <Link
+        href="/search"
+        aria-label="جست‌وجو در محصولات"
+        title="جست‌وجو در محصولات"
         className="
           flex
           size-10
@@ -35,7 +36,7 @@ export function HeaderActions() {
           strokeWidth={1.7}
           aria-hidden="true"
         />
-      </button>
+      </Link>
 
 
       <AccountLink />

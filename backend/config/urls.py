@@ -15,6 +15,10 @@ urlpatterns = [
     ),
     path(
         "api/v1/",
+        include("apps.blog.urls"),
+    ),
+    path(
+        "api/v1/",
         include("apps.catalog.urls"),
     ),
     path(
