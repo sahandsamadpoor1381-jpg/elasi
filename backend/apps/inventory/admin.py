@@ -1,7 +1,9 @@
 from django import forms
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.http import HttpResponseRedirect
+from django.urls import reverse
 
 from .models import InventoryBalance, StockMovement
 
@@ -62,7 +64,15 @@ class InventoryBalanceAdmin(admin.ModelAdmin):
     it re-reads the latest ``reserved``/``on_hand`` inside the
     transaction instead of trusting the (possibly stale) form
     instance, so a concurrent reservation can never be clobbered
-    by a stale admin save.
+    by a stale admin save. On the add path it persists the very
+    instance Django Admin supplied (so ``obj.pk`` is populated for
+    the log entry and the post-save redirect) with ``reserved=0``,
+    and records the opening stock as a single ``adjustment``
+    movement in the same transaction.
+
+    A save rejected by the locked re-check is reported through
+    ``changeform_view`` as a normal admin error message instead of
+    an HTTP 500.
     """
 
     form = InventoryBalanceAdminForm
@@ -104,6 +114,50 @@ class InventoryBalanceAdmin(admin.ModelAdmin):
             return self.readonly_fields + ("variant",)
         return self.readonly_fields
 
+    def changeform_view(
+        self,
+        request,
+        object_id=None,
+        form_url="",
+        extra_context=None,
+    ):
+        """Keep a rejected save a normal admin error, never a 500.
+
+        ``save_model`` re-checks ``on_hand >= reserved`` while holding
+        ``select_for_update``. If a concurrent reservation commits after
+        the form validated, that check raises ``ValidationError`` from
+        inside the save path - and Django calls ``save_model`` without
+        catching it (options.py:1895), so the exception would otherwise
+        surface to the operator as an HTTP 500.
+
+        By the time we get here the admin's own atomic block has already
+        rolled the rejected save back, so it is safe to report the error
+        and send the operator back to the changelist to retry against
+        fresh data.
+        """
+        try:
+            return super().changeform_view(
+                request,
+                object_id,
+                form_url,
+                extra_context,
+            )
+        except ValidationError as exc:
+            self.message_user(
+                request,
+                " ".join(exc.messages),
+                messages.ERROR,
+            )
+            return HttpResponseRedirect(
+                reverse(
+                    "admin:%s_%s_changelist" % (
+                        self.model._meta.app_label,
+                        self.model._meta.model_name,
+                    ),
+                    current_app=self.admin_site.name,
+                ),
+            )
+
     @transaction.atomic
     def save_model(
         self,
@@ -113,19 +167,25 @@ class InventoryBalanceAdmin(admin.ModelAdmin):
         change,
     ):
         if not change:
-            balance = InventoryBalance(
-                variant=obj.variant,
-                on_hand=obj.on_hand,
-                reserved=0,
-            )
-            balance.save()
+            # Persist the very instance Django Admin handed us. The
+            # normal ModelAdmin lifecycle continues with this object:
+            # log_addition() stores object_id=obj.pk (options.py:1901)
+            # and response_add() builds the post-save redirect from
+            # quote(obj.pk) (options.py:1422). Saving a separate
+            # instance leaves obj.pk as None, which writes a log entry
+            # with a NULL object_id and redirects to ".../None/change/".
+            # reserved stays 0: a brand new balance row has nothing
+            # reserved, and the model's reserved<=on_hand check would
+            # reject anything else.
+            obj.reserved = 0
+            obj.save()
 
-            if balance.on_hand:
+            if obj.on_hand:
                 StockMovement.objects.create(
-                    variant=balance.variant,
+                    variant=obj.variant,
                     reason=StockMovement.Reason.ADJUSTMENT,
-                    quantity=balance.on_hand,
-                    on_hand_delta=balance.on_hand,
+                    quantity=obj.on_hand,
+                    on_hand_delta=obj.on_hand,
                     reserved_delta=0,
                 )
             return
