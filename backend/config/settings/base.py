@@ -182,6 +182,14 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
     ],
+
+    # Adds a stable machine-readable "code" to CSRF / session
+    # rejections so storefront clients can refresh the CSRF token and
+    # retry (or route the customer to sign in) instead of parsing
+    # English prose. CSRF enforcement itself is unchanged.
+    "EXCEPTION_HANDLER": (
+        "apps.core.exceptions.elasi_exception_handler"
+    ),
 }
 
 OTP_SMS_BACKEND = env(

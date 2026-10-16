@@ -1,6 +1,15 @@
+/**
+ * Checkout API client.
+ *
+ * Prices and totals stay server-authoritative: this module only sends
+ * the customer's shipping details and reads back the order the backend
+ * created. Never recompute money on the client.
+ */
+
 import {
-  getCsrfToken,
-} from "@/lib/auth-api";
+  ApiError,
+  apiRequest,
+} from "./api-client";
 
 import type {
   CheckoutApiErrorPayload,
@@ -9,80 +18,38 @@ import type {
 } from "@/types/order";
 
 
-const API_BASE_URL =
-  process.env
-    .NEXT_PUBLIC_API_BASE_URL;
-
-
-function getApiBaseUrl(): string {
-  if (!API_BASE_URL) {
-    throw new Error(
-      "NEXT_PUBLIC_API_BASE_URL is not configured.",
-    );
-  }
-
-  return API_BASE_URL;
-}
-
-
-export class CheckoutApiError
-  extends Error {
-  status: number;
-
-  code?: string;
-  available?: number;
-  sku?: string;
-
-  payload:
-    CheckoutApiErrorPayload;
-
+export class CheckoutApiError extends ApiError {
+  payload: CheckoutApiErrorPayload;
 
   constructor(
     status: number,
-    payload:
-      CheckoutApiErrorPayload,
+    payload: CheckoutApiErrorPayload,
   ) {
     super(
-      payload.detail ||
-        "Checkout request failed.",
+      typeof payload.detail === "string"
+        ? payload.detail
+        : `Checkout request failed with status ${status}`,
+      {
+        status,
+        code:
+          typeof payload.code === "string"
+            ? payload.code
+            : undefined,
+        available:
+          typeof payload.available === "number"
+            ? payload.available
+            : undefined,
+        sku:
+          typeof payload.sku === "string"
+            ? payload.sku
+            : undefined,
+        payload,
+      },
     );
 
-    this.name =
-      "CheckoutApiError";
-
-    this.status = status;
-    this.code = payload.code;
-    this.available =
-      payload.available;
-    this.sku = payload.sku;
-
+    this.name = "CheckoutApiError";
     this.payload = payload;
   }
-}
-
-
-async function parseErrorResponse(
-  response: Response,
-): Promise<CheckoutApiErrorPayload> {
-  try {
-    const payload =
-      await response.json();
-
-    if (
-      payload &&
-      typeof payload ===
-        "object"
-    ) {
-      return payload;
-    }
-  } catch {
-    // Fall through.
-  }
-
-  return {
-    detail:
-      `Checkout request failed: ${response.status}`,
-  };
 }
 
 
@@ -90,49 +57,20 @@ export async function checkoutCart(
   cartToken: string,
   payload: CheckoutPayload,
 ): Promise<Order> {
-  const csrfToken =
-    await getCsrfToken();
-
-  const response =
-    await fetch(
-      `${getApiBaseUrl()}/checkout/`,
-      {
-        method: "POST",
-
-        credentials:
-          "include",
-
-        headers: {
-          "Content-Type":
-            "application/json",
-
-          "X-CSRFToken":
-            csrfToken,
-
-          "X-Cart-Token":
-            cartToken,
-        },
-
-        body:
-          JSON.stringify(
-            payload,
-          ),
-      },
-    );
-
-
-  if (!response.ok) {
-    const errorPayload =
-      await parseErrorResponse(
-        response,
+  try {
+    return await apiRequest<Order>("/checkout/", {
+      method: "POST",
+      body: payload,
+      headers: { "X-Cart-Token": cartToken },
+    });
+  } catch (error) {
+    if (error instanceof ApiError) {
+      throw new CheckoutApiError(
+        error.status,
+        error.payload as CheckoutApiErrorPayload,
       );
+    }
 
-    throw new CheckoutApiError(
-      response.status,
-      errorPayload,
-    );
+    throw error;
   }
-
-
-  return response.json();
 }

@@ -11,12 +11,13 @@ import {
 } from "react";
 
 import {
-  AuthApiError,
   getAuthSession,
   logoutSession,
   requestOTP,
   verifyOTP,
 } from "@/lib/auth-api";
+
+import { customerMessage } from "@/lib/api-client";
 
 import type {
   AuthUser,
@@ -58,39 +59,13 @@ const AuthContext =
 function getAuthErrorMessage(
   error: unknown,
 ): string {
-  if (error instanceof AuthApiError) {
-    switch (error.code) {
-      case "invalid_phone_number":
-        return "شماره موبایل واردشده معتبر نیست.";
-
-      case "resend_too_soon":
-        return "برای ارسال مجدد کد کمی صبر کنید.";
-
-      case "request_rate_limited":
-        return "تعداد درخواست‌ها بیش از حد مجاز است. کمی بعد دوباره تلاش کنید.";
-
-      case "invalid_otp":
-        return "کد واردشده صحیح نیست.";
-
-      case "otp_expired":
-        return "کد تأیید منقضی شده است. کد جدید دریافت کنید.";
-
-      case "otp_locked":
-        return "به‌دلیل تلاش‌های ناموفق متعدد، ورود موقتاً محدود شده است.";
-
-      case "account_disabled":
-        return "این حساب کاربری غیرفعال است.";
-
-      default:
-        return error.message;
-    }
-  }
-
-  if (error instanceof Error) {
-    return error.message;
-  }
-
-  return "در ارتباط با حساب کاربری مشکلی پیش آمد.";
+  /*
+   * Single source of Persian customer copy. Framework prose such as
+   * "CSRF Failed: CSRF cookie not set." is never surfaced; the shared
+   * mapper resolves the stable error code and falls back to a generic,
+   * human message.
+   */
+  return customerMessage(error);
 }
 
 

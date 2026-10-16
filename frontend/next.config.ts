@@ -1,5 +1,14 @@
 import type { NextConfig } from "next";
 
+
+/*
+ * Browser requests to /api/v1/* and /media/* are proxied to Django by
+ * src/proxy.ts, keeping session and CSRF cookies first-party.
+ * INTERNAL_API_ORIGIN (server-only, no NEXT_PUBLIC_ prefix) is the
+ * Django origin used by that proxy and by server-side data fetching.
+ */
+
+
 const nextConfig: NextConfig = {
   images: {
     dangerouslyAllowLocalIP: true,
@@ -19,6 +28,8 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+
 };
+
 
 export default nextConfig;

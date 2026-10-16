@@ -1,57 +1,41 @@
+/**
+ * Catalog API client.
+ *
+ * Used from React Server Components (homepage, product page) as well as
+ * client components; `apiRequest` resolves the correct base URL for
+ * each runtime (absolute internal origin on the server, same-origin
+ * `/api/v1` in the browser).
+ */
+
+import { apiRequest } from "./api-client";
+
 import type { Product } from "@/types/catalog";
 
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-
-
-function getApiBaseUrl(): string {
-  if (!API_BASE_URL) {
-    throw new Error(
-      "NEXT_PUBLIC_API_BASE_URL is not configured.",
-    );
-  }
-
-  return API_BASE_URL;
-}
-
-
 export async function getProducts(): Promise<Product[]> {
-  const response = await fetch(
-    `${getApiBaseUrl()}/products/`,
-    {
-      cache: "no-store",
-    },
-  );
-
-  if (!response.ok) {
-    throw new Error(
-      `Failed to fetch products: ${response.status}`,
-    );
-  }
-
-  return response.json();
+  return apiRequest<Product[]>("/products/", {
+    method: "GET",
+  });
 }
 
 
 export async function getProduct(
   slug: string,
 ): Promise<Product | null> {
-  const response = await fetch(
-    `${getApiBaseUrl()}/products/${encodeURIComponent(slug)}/`,
-    {
-      cache: "no-store",
-    },
-  );
-
-  if (response.status === 404) {
-    return null;
-  }
-
-  if (!response.ok) {
-    throw new Error(
-      `Failed to fetch product "${slug}": ${response.status}`,
+  try {
+    return await apiRequest<Product>(
+      `/products/${encodeURIComponent(slug)}/`,
+      { method: "GET" },
     );
-  }
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      "status" in error &&
+      (error as { status?: number }).status === 404
+    ) {
+      return null;
+    }
 
-  return response.json();
+    throw error;
+  }
 }

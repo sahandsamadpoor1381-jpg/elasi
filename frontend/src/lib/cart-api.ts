@@ -1,6 +1,16 @@
+/**
+ * Cart API client.
+ *
+ * Uses the shared client so the CSRF token is attached to every unsafe
+ * request and refreshed automatically when Django rotates it. The guest
+ * cart token keeps travelling in `X-Cart-Token` exactly as before, so
+ * the Phase 01 ownership rules are untouched.
+ */
+
 import {
-  getCsrfToken,
-} from "@/lib/auth-api";
+  ApiError,
+  apiRequest,
+} from "./api-client";
 
 import type {
   Cart,
@@ -8,117 +18,84 @@ import type {
 } from "@/types/cart";
 
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL;
-
-
-function getApiBaseUrl(): string {
-  if (!API_BASE_URL) {
-    throw new Error(
-      "NEXT_PUBLIC_API_BASE_URL is not configured.",
-    );
-  }
-
-  return API_BASE_URL;
-}
-
-
-export class CartApiError extends Error {
-  status: number;
-  code?: string;
-  available?: number;
+export class CartApiError extends ApiError {
+  payload: CartApiErrorPayload;
 
   constructor(
     status: number,
     payload: CartApiErrorPayload,
   ) {
     super(
-      payload.detail ||
-        "Cart request failed.",
+      typeof payload.detail === "string"
+        ? payload.detail
+        : `Cart request failed with status ${status}`,
+      {
+        status,
+        code:
+          typeof payload.code === "string"
+            ? payload.code
+            : undefined,
+        available:
+          typeof payload.available === "number"
+            ? payload.available
+            : undefined,
+        payload,
+      },
     );
 
     this.name = "CartApiError";
-    this.status = status;
-    this.code = payload.code;
-    this.available = payload.available;
+    this.payload = payload;
   }
 }
 
 
-async function parseErrorResponse(
-  response: Response,
-): Promise<CartApiErrorPayload> {
+async function request<T>(
+  path: string,
+  init: {
+    method?: string;
+    body?: unknown;
+    token?: string;
+  },
+): Promise<T> {
   try {
-    return await response.json();
-  } catch {
-    return {
-      detail: `Cart request failed: ${response.status}`,
-    };
+    return await apiRequest<T>(path, {
+      method: init.method,
+      body: init.body,
+      headers: init.token
+        ? { "X-Cart-Token": init.token }
+        : undefined,
+    });
+  } catch (error) {
+    if (error instanceof ApiError) {
+      throw new CartApiError(
+        error.status,
+        error.payload as CartApiErrorPayload,
+      );
+    }
+
+    throw error;
   }
-}
-
-
-async function assertCartResponse(
-  response: Response,
-): Promise<Cart> {
-  if (!response.ok) {
-    const payload =
-      await parseErrorResponse(response);
-
-    throw new CartApiError(
-      response.status,
-      payload,
-    );
-  }
-
-  return response.json();
 }
 
 
 export async function createCart(): Promise<Cart> {
   /*
-   * credentials: "include" is required so the session cookie
-   * reaches the API and authenticated users get their account
-   * cart (get-or-create) instead of an anonymous one.
-   *
-   * Authenticated POSTs are CSRF-protected (Django Session
-   * Authentication), so always send the CSRF token header.
+   * credentials: "include" is required so the session cookie reaches
+   * the API and authenticated users get their account cart
+   * (get-or-create) instead of an anonymous one.
    */
-  const csrfToken = await getCsrfToken();
-
-  const response = await fetch(
-    `${getApiBaseUrl()}/cart/`,
-    {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": csrfToken,
-      },
-      body: JSON.stringify({}),
-    },
-  );
-
-  return assertCartResponse(response);
+  return request<Cart>("/cart/", {
+    method: "POST",
+    body: {},
+  });
 }
 
 
-export async function getCart(
-  token: string,
-): Promise<Cart> {
-  const response = await fetch(
-    `${getApiBaseUrl()}/cart/`,
-    {
-      method: "GET",
-      credentials: "include",
-      headers: {
-        "X-Cart-Token": token,
-      },
-      cache: "no-store",
-    },
-  );
-
-  return assertCartResponse(response);
+export async function getCart(token: string): Promise<Cart> {
+  return request<Cart>("/cart/", {
+    method: "GET",
+    token,
+  });
 }
 
 
@@ -127,26 +104,14 @@ export async function addCartItem(
   variantSku: string,
   quantity = 1,
 ): Promise<Cart> {
-  const csrfToken = await getCsrfToken();
-
-  const response = await fetch(
-    `${getApiBaseUrl()}/cart/items/`,
-    {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": csrfToken,
-        "X-Cart-Token": token,
-      },
-      body: JSON.stringify({
-        variant_sku: variantSku,
-        quantity,
-      }),
+  return request<Cart>("/cart/items/", {
+    method: "POST",
+    token,
+    body: {
+      variant_sku: variantSku,
+      quantity,
     },
-  );
-
-  return assertCartResponse(response);
+  });
 }
 
 
@@ -155,25 +120,11 @@ export async function updateCartItem(
   itemId: number,
   quantity: number,
 ): Promise<Cart> {
-  const csrfToken = await getCsrfToken();
-
-  const response = await fetch(
-    `${getApiBaseUrl()}/cart/items/${itemId}/`,
-    {
-      method: "PATCH",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": csrfToken,
-        "X-Cart-Token": token,
-      },
-      body: JSON.stringify({
-        quantity,
-      }),
-    },
-  );
-
-  return assertCartResponse(response);
+  return request<Cart>(`/cart/items/${itemId}/`, {
+    method: "PATCH",
+    token,
+    body: { quantity },
+  });
 }
 
 
@@ -181,27 +132,8 @@ export async function deleteCartItem(
   token: string,
   itemId: number,
 ): Promise<void> {
-  const csrfToken = await getCsrfToken();
-
-  const response = await fetch(
-    `${getApiBaseUrl()}/cart/items/${itemId}/`,
-    {
-      method: "DELETE",
-      credentials: "include",
-      headers: {
-        "X-CSRFToken": csrfToken,
-        "X-Cart-Token": token,
-      },
-    },
-  );
-
-  if (!response.ok) {
-    const payload =
-      await parseErrorResponse(response);
-
-    throw new CartApiError(
-      response.status,
-      payload,
-    );
-  }
+  await request<void>(`/cart/items/${itemId}/`, {
+    method: "DELETE",
+    token,
+  });
 }
