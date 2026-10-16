@@ -1,15 +1,12 @@
-from uuid import UUID
-
 from rest_framework import status
-from rest_framework.exceptions import (
-    ValidationError,
-)
 from rest_framework.permissions import (
     IsAuthenticated,
 )
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
+from apps.core.api import get_cart_token
 
 from .models import Order
 from .serializers import (
@@ -20,35 +17,6 @@ from .services import (
     CheckoutError,
     checkout_cart,
 )
-
-
-def get_cart_token(
-    request: Request,
-) -> UUID:
-    raw_token = request.headers.get(
-        "X-Cart-Token",
-    )
-
-    if not raw_token:
-        raise ValidationError(
-            {
-                "cart_token": (
-                    "X-Cart-Token header "
-                    "is required."
-                ),
-            },
-        )
-
-    try:
-        return UUID(raw_token)
-    except ValueError as exc:
-        raise ValidationError(
-            {
-                "cart_token": (
-                    "Invalid cart token."
-                ),
-            },
-        ) from exc
 
 
 def checkout_error_response(

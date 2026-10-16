@@ -1,14 +1,12 @@
-from uuid import UUID
-
 from django.shortcuts import get_object_or_404
 from rest_framework import status
-from rest_framework.exceptions import (
-    ValidationError,
-)
+from rest_framework.exceptions import NotFound
 from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
+from apps.core.api import get_cart_token
 
 from .models import Cart
 from .serializers import (
@@ -35,47 +33,57 @@ def get_cart_queryset():
     )
 
 
-def get_cart_token(
-    request: Request,
-) -> UUID:
-    raw_token = request.headers.get(
-        "X-Cart-Token",
-    )
-
-    if not raw_token:
-        raise ValidationError(
-            {
-                "cart_token": (
-                    "X-Cart-Token header "
-                    "is required."
-                ),
-            },
-        )
-
-    try:
-        return UUID(raw_token)
-    except ValueError as exc:
-        raise ValidationError(
-            {
-                "cart_token": (
-                    "Invalid cart token."
-                ),
-            },
-        ) from exc
-
-
 def get_request_cart(
     request: Request,
 ) -> Cart:
+    """
+    Resolve the cart addressed by ``X-Cart-Token`` with a strict
+    ownership policy:
+
+    - A cart bound to a user is visible and modifiable only by
+      that user (never by anonymous requests or other users —
+      even when the token is known). Foreign carts raise 404 so
+      token leaks reveal nothing.
+    - An unbound guest cart is claimed by the first authenticated
+      user that touches it. This preserves guest carts across the
+      OTP login flow (the token lives in browser storage and the
+      cart becomes the user's cart on the next request).
+    - Anonymous requests against unbound carts keep the original
+      capability-token behavior with no regression.
+    """
+
     token = get_cart_token(
         request,
     )
 
-    return get_object_or_404(
+    cart = get_object_or_404(
         get_cart_queryset(),
         token=token,
         status=Cart.Status.ACTIVE,
     )
+
+    if cart.user_id is not None:
+        if (
+            not request.user.is_authenticated
+            or cart.user_id != request.user.pk
+        ):
+            raise NotFound(
+                "Cart was not found.",
+            )
+
+        return cart
+
+    if request.user.is_authenticated:
+        cart.user = request.user
+
+        cart.save(
+            update_fields=(
+                "user",
+                "updated_at",
+            ),
+        )
+
+    return cart
 
 
 def cart_service_error_response(
@@ -106,15 +114,50 @@ class CartAPIView(APIView):
         self,
         request: Request,
     ) -> Response:
-        user = (
-            request.user
-            if request.user.is_authenticated
-            else None
-        )
+        """
+        Create (or return) the requester's active cart.
 
-        cart = Cart.objects.create(
-            user=user,
-        )
+        - Authenticated users get-or-create a single active cart
+          bound to their account, so a login on a new device
+          recovers the same cart.
+        - Anonymous requests create a fresh guest cart, exactly
+          as before.
+        """
+
+        if request.user.is_authenticated:
+            existing = (
+                Cart.objects
+                .filter(
+                    user=request.user,
+                    status=Cart.Status.ACTIVE,
+                )
+                .order_by("-updated_at")
+                .first()
+            )
+
+            if existing is not None:
+                cart = get_cart_queryset().get(
+                    pk=existing.pk,
+                )
+
+                return Response(
+                    CartSerializer(
+                        cart,
+                        context={
+                            "request": request,
+                        },
+                    ).data,
+                    status=status.HTTP_200_OK,
+                )
+
+            cart = Cart.objects.create(
+                user=request.user,
+            )
+
+        else:
+            cart = Cart.objects.create(
+                user=None,
+            )
 
         cart = get_cart_queryset().get(
             pk=cart.pk,

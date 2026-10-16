@@ -1,3 +1,7 @@
+import {
+  getCsrfToken,
+} from "@/lib/auth-api";
+
 import type {
   Cart,
   CartApiErrorPayload,
@@ -72,12 +76,24 @@ async function assertCartResponse(
 
 
 export async function createCart(): Promise<Cart> {
+  /*
+   * credentials: "include" is required so the session cookie
+   * reaches the API and authenticated users get their account
+   * cart (get-or-create) instead of an anonymous one.
+   *
+   * Authenticated POSTs are CSRF-protected (Django Session
+   * Authentication), so always send the CSRF token header.
+   */
+  const csrfToken = await getCsrfToken();
+
   const response = await fetch(
     `${getApiBaseUrl()}/cart/`,
     {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
+        "X-CSRFToken": csrfToken,
       },
       body: JSON.stringify({}),
     },
@@ -93,6 +109,8 @@ export async function getCart(
   const response = await fetch(
     `${getApiBaseUrl()}/cart/`,
     {
+      method: "GET",
+      credentials: "include",
       headers: {
         "X-Cart-Token": token,
       },
@@ -109,12 +127,16 @@ export async function addCartItem(
   variantSku: string,
   quantity = 1,
 ): Promise<Cart> {
+  const csrfToken = await getCsrfToken();
+
   const response = await fetch(
     `${getApiBaseUrl()}/cart/items/`,
     {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
+        "X-CSRFToken": csrfToken,
         "X-Cart-Token": token,
       },
       body: JSON.stringify({
@@ -133,12 +155,16 @@ export async function updateCartItem(
   itemId: number,
   quantity: number,
 ): Promise<Cart> {
+  const csrfToken = await getCsrfToken();
+
   const response = await fetch(
     `${getApiBaseUrl()}/cart/items/${itemId}/`,
     {
       method: "PATCH",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
+        "X-CSRFToken": csrfToken,
         "X-Cart-Token": token,
       },
       body: JSON.stringify({
@@ -155,11 +181,15 @@ export async function deleteCartItem(
   token: string,
   itemId: number,
 ): Promise<void> {
+  const csrfToken = await getCsrfToken();
+
   const response = await fetch(
     `${getApiBaseUrl()}/cart/items/${itemId}/`,
     {
       method: "DELETE",
+      credentials: "include",
       headers: {
+        "X-CSRFToken": csrfToken,
         "X-Cart-Token": token,
       },
     },
