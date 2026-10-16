@@ -33,7 +33,7 @@ export function CartLink({
     <Link
       href="/cart"
       aria-label={label}
-      className={`relative flex size-10 items-center justify-center rounded-full text-elasi-green transition-colors hover:bg-elasi-green/5 hover:text-elasi-gold ${className}`}
+      className={`relative flex size-10 items-center justify-center rounded-full text-elasi-green transition-colors hover:bg-elasi-green/5 hover:text-elasi-gold-text ${className}`}
     >
       <ShoppingBag
         size={20}

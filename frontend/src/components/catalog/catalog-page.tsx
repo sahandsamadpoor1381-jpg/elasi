@@ -134,7 +134,7 @@ export function CatalogSearchForm({
         defaultValue={initialQuery}
         autoFocus={autoFocus}
         placeholder="نام محصول، دسته‌بندی یا متریال…"
-        className="min-h-12 w-full rounded-full border border-elasi-green/15 bg-white px-5 text-body text-elasi-text outline-none transition-colors placeholder:text-elasi-muted/70 focus:border-elasi-gold focus-visible:ring-2 focus-visible:ring-elasi-gold/40"
+        className="min-h-12 w-full rounded-full border border-elasi-border-strong bg-white px-5 text-body text-elasi-text outline-none transition-colors placeholder:text-elasi-muted/70 focus:border-elasi-gold focus-visible:ring-2 focus-visible:ring-elasi-gold/40"
       />
 
       <button
@@ -147,7 +147,7 @@ export function CatalogSearchForm({
       {initialQuery ? (
         <Link
           href={action}
-          className="flex min-h-12 shrink-0 items-center justify-center rounded-full border border-elasi-green/15 px-5 text-sm font-medium text-elasi-muted transition-colors hover:border-elasi-danger/40 hover:text-elasi-danger"
+          className="flex min-h-12 shrink-0 items-center justify-center rounded-full border border-elasi-border-strong px-5 text-sm font-medium text-elasi-muted transition-colors hover:border-elasi-danger/40 hover:text-elasi-danger"
         >
           پاک‌کردن
         </Link>
@@ -225,7 +225,7 @@ export async function CatalogPage({
     <main className="bg-elasi-ivory pb-20">
       <div className="elasi-container pt-10 sm:pt-14">
         <header className="max-w-3xl">
-          <p className="text-label font-medium tracking-[0.2em] text-elasi-gold">
+          <p className="text-label font-medium tracking-[0.2em] text-elasi-gold-text">
             {copy.eyebrow}
           </p>
 
@@ -249,7 +249,7 @@ export async function CatalogPage({
           </div>
         ) : null}
 
-        <div className="mt-10 rounded-[28px] border border-elasi-green/10 bg-white/60 p-6 sm:p-8">
+        <div className="mt-10 rounded-card border border-elasi-green/10 bg-white/60 p-6 sm:p-8">
           <ListingToolbar
             pathname={pathname}
             searchParams={searchParams}
@@ -274,7 +274,7 @@ export async function CatalogPage({
           {state.query ? (
             <Link
               href={pathname}
-              className="text-sm font-medium text-elasi-green transition-colors hover:text-elasi-gold"
+              className="text-sm font-medium text-elasi-green transition-colors hover:text-elasi-gold-text"
             >
               حذف جست‌وجو
             </Link>

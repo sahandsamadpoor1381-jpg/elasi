@@ -31,7 +31,7 @@ function ArticleCard({ article }: { article: ArticleSummary }) {
   const cover = mediaPath(article.cover_image);
 
   return (
-    <article className="flex h-full flex-col overflow-hidden rounded-[28px] border border-elasi-green/10 bg-white/60 transition-colors hover:border-elasi-gold/40">
+    <article className="flex h-full flex-col overflow-hidden rounded-card border border-elasi-green/10 bg-white/60 transition-colors hover:border-elasi-gold/40">
       <Link
         href={`/blog/${article.slug}`}
         className="flex h-full flex-col"
@@ -68,7 +68,7 @@ function ArticleCard({ article }: { article: ArticleSummary }) {
             </p>
           ) : null}
 
-          <span className="mt-5 pt-4 text-sm font-medium text-elasi-gold">
+          <span className="mt-5 pt-4 text-sm font-medium text-elasi-gold-text">
             ادامه‌ی مطلب
           </span>
         </div>
@@ -116,7 +116,7 @@ export default async function BlogPage({
     <main className="bg-elasi-ivory pb-20">
       <div className="elasi-container pt-10 sm:pt-14">
         <header className="max-w-3xl">
-          <p className="text-label font-medium tracking-[0.2em] text-elasi-gold">
+          <p className="text-label font-medium tracking-[0.2em] text-elasi-gold-text">
             JOURNAL
           </p>
 
@@ -135,7 +135,7 @@ export default async function BlogPage({
           {hasError ? (
             <div
               role="alert"
-              className="rounded-[28px] border border-elasi-danger/20 bg-elasi-danger/[0.04] px-6 py-14 text-center"
+              className="rounded-card border border-elasi-danger/20 bg-elasi-danger/[0.04] px-6 py-14 text-center"
             >
               <p className="text-lg font-semibold text-elasi-green">
                 نمایش مطالب ممکن نشد
@@ -154,7 +154,7 @@ export default async function BlogPage({
               </Link>
             </div>
           ) : results.length === 0 ? (
-            <div className="rounded-[28px] border border-elasi-green/10 bg-white/60 px-6 py-16 text-center">
+            <div className="rounded-card border border-elasi-green/10 bg-white/60 px-6 py-16 text-center">
               <p className="text-lg font-semibold text-elasi-green">
                 هنوز مطلبی منتشر نشده است
               </p>

@@ -28,7 +28,7 @@ const chipBase =
   "rounded-full border px-4 py-2 text-sm font-medium transition-colors";
 
 const chipIdle =
-  "border-elasi-green/15 bg-elasi-ivory text-elasi-green hover:border-elasi-gold hover:text-elasi-gold";
+  "border-elasi-border-strong bg-elasi-ivory text-elasi-green hover:border-elasi-gold hover:text-elasi-gold-text";
 
 const chipActive =
   "border-elasi-gold bg-elasi-gold/12 text-elasi-green";
@@ -108,7 +108,7 @@ export function ListingToolbar({
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-3">
-        <p className="text-caption font-medium tracking-[0.18em] text-elasi-gold">
+        <p className="text-caption font-medium tracking-[0.18em] text-elasi-gold-text">
           دسته‌بندی
         </p>
 
@@ -132,7 +132,7 @@ export function ListingToolbar({
       </div>
 
       <div className="flex flex-col gap-3">
-        <p className="text-caption font-medium tracking-[0.18em] text-elasi-gold">
+        <p className="text-caption font-medium tracking-[0.18em] text-elasi-gold-text">
           متریال
         </p>
 
@@ -159,7 +159,7 @@ export function ListingToolbar({
 
       {genderOptions.length > 0 ? (
         <div className="flex flex-col gap-3">
-          <p className="text-caption font-medium tracking-[0.18em] text-elasi-gold">
+          <p className="text-caption font-medium tracking-[0.18em] text-elasi-gold-text">
             مناسب برای
           </p>
 

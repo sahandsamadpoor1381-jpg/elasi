@@ -48,7 +48,7 @@ export default async function AboutPage() {
     <main className="bg-elasi-ivory pb-20">
       <div className="elasi-container pt-10 sm:pt-14">
         <header className="max-w-3xl">
-          <p className="text-label font-medium tracking-[0.2em] text-elasi-gold">
+          <p className="text-label font-medium tracking-[0.2em] text-elasi-gold-text">
             ABOUT ELASI
           </p>
 
@@ -65,7 +65,7 @@ export default async function AboutPage() {
         </header>
 
         <section className="mt-14 grid gap-6 lg:grid-cols-3">
-          <div className="rounded-[28px] border border-elasi-green/10 bg-white/60 p-7">
+          <div className="rounded-card border border-elasi-green/10 bg-white/60 p-7">
             <h2 className="text-h3 text-elasi-green">
               مشخصات شفاف
             </h2>
@@ -79,7 +79,7 @@ export default async function AboutPage() {
             </p>
           </div>
 
-          <div className="rounded-[28px] border border-elasi-green/10 bg-white/60 p-7">
+          <div className="rounded-card border border-elasi-green/10 bg-white/60 p-7">
             <h2 className="text-h3 text-elasi-green">
               موجودی واقعی
             </h2>
@@ -92,7 +92,7 @@ export default async function AboutPage() {
             </p>
           </div>
 
-          <div className="rounded-[28px] border border-elasi-green/10 bg-white/60 p-7">
+          <div className="rounded-card border border-elasi-green/10 bg-white/60 p-7">
             <h2 className="text-h3 text-elasi-green">
               اندازه‌ی اختصاصی
             </h2>
@@ -107,7 +107,7 @@ export default async function AboutPage() {
         </section>
 
         {categories.length > 0 ? (
-          <section className="mt-14 rounded-[28px] border border-elasi-green/10 bg-white/60 p-7 sm:p-10">
+          <section className="mt-14 rounded-card border border-elasi-green/10 bg-white/60 p-7 sm:p-10">
             <h2 className="text-h3 text-elasi-green">
               دسته‌بندی‌های فعلی فروشگاه
             </h2>
@@ -125,7 +125,7 @@ export default async function AboutPage() {
                     href={`/shop?category=${encodeURIComponent(
                       category.slug,
                     )}`}
-                    className="flex items-center gap-2 rounded-full border border-elasi-green/15 bg-elasi-ivory px-5 py-2.5 text-sm font-medium text-elasi-green transition-colors hover:border-elasi-gold hover:text-elasi-gold"
+                    className="flex items-center gap-2 rounded-full border border-elasi-border-strong bg-elasi-ivory px-5 py-2.5 text-sm font-medium text-elasi-green transition-colors hover:border-elasi-gold hover:text-elasi-gold-text"
                   >
                     {category.name}
 
@@ -150,7 +150,7 @@ export default async function AboutPage() {
             {buyingSteps.map((step, index) => (
               <li
                 key={step.title}
-                className="rounded-[28px] border border-elasi-green/10 bg-white/60 p-7"
+                className="rounded-card border border-elasi-green/10 bg-white/60 p-7"
               >
                 <span className="flex size-9 items-center justify-center rounded-full bg-elasi-green text-sm font-semibold text-elasi-ivory">
                   {formatNumber(index + 1)}
@@ -168,7 +168,7 @@ export default async function AboutPage() {
           </ol>
         </section>
 
-        <section className="mt-14 flex flex-col items-start gap-6 rounded-[28px] border border-elasi-green/10 bg-elasi-green/[0.04] p-7 sm:flex-row sm:items-center sm:justify-between sm:p-10">
+        <section className="mt-14 flex flex-col items-start gap-6 rounded-card border border-elasi-green/10 bg-elasi-green/[0.04] p-7 sm:flex-row sm:items-center sm:justify-between sm:p-10">
           <div>
             <h2 className="text-h3 text-elasi-green">
               مجموعه را ببینید

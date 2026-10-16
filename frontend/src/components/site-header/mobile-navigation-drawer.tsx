@@ -321,7 +321,7 @@ export function MobileNavigationDrawer({
                 text-elasi-green
                 transition-colors
                 hover:bg-elasi-green/5
-                hover:text-elasi-gold
+                hover:text-elasi-gold-text
               "
             >
               <X
@@ -383,8 +383,8 @@ export function MobileNavigationDrawer({
                           transition-colors
                           ${
                             isActive
-                              ? "text-elasi-gold"
-                              : "text-elasi-text hover:text-elasi-gold"
+                              ? "text-elasi-gold-text"
+                              : "text-elasi-text hover:text-elasi-gold-text"
                           }
                         `}
                       >
@@ -445,7 +445,7 @@ export function MobileNavigationDrawer({
                   font-medium
                   text-elasi-text
                   transition-colors
-                  hover:text-elasi-gold
+                  hover:text-elasi-gold-text
                 "
               >
                 <span

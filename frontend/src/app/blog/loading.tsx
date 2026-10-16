@@ -13,7 +13,7 @@ export default function Loading() {
         {Array.from({ length: 3 }).map((_, index) => (
           <li
             key={index}
-            className="overflow-hidden rounded-[28px] border border-elasi-green/10 bg-white/50"
+            className="overflow-hidden rounded-card border border-elasi-green/10 bg-white/50"
           >
             <div className="aspect-[16/9] animate-pulse bg-elasi-green/[0.06]" />
             <div className="p-6">

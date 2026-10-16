@@ -87,7 +87,7 @@ export default async function ProductPage({
         >
           <Link
             href="/"
-            className="transition-colors hover:text-elasi-gold"
+            className="transition-colors hover:text-elasi-gold-text"
           >
             خانه
           </Link>
@@ -143,7 +143,7 @@ export default async function ProductPage({
           <div className="elasi-container py-16 sm:py-20 lg:py-24">
             <div className="grid gap-8 lg:grid-cols-[0.7fr_1.3fr] lg:gap-16">
               <div>
-                <p className="text-label tracking-[0.18em] text-elasi-gold">
+                <p className="text-label tracking-[0.18em] text-elasi-gold-text">
                   PRODUCT STORY
                 </p>
 

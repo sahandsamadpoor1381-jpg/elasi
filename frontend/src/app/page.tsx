@@ -86,7 +86,7 @@ export default async function Home() {
           <div className="grid min-h-[620px] items-stretch gap-8 lg:grid-cols-[0.92fr_1.08fr] lg:gap-12">
             {/* Hero Copy */}
             <div className="order-2 flex flex-col justify-center py-6 text-right lg:order-1 lg:py-12">
-              <p className="text-label font-medium tracking-[0.2em] text-elasi-gold">
+              <p className="text-label font-medium tracking-[0.2em] text-elasi-gold-text">
                 ELASI JEWELRY
               </p>
 
@@ -175,7 +175,7 @@ export default async function Home() {
 
                     {/* Hero Product Overlay */}
                     <div className="absolute inset-x-5 bottom-5 rounded-[24px] border border-white/20 bg-white/80 p-5 backdrop-blur-md sm:inset-x-6 sm:bottom-6">
-                      <p className="text-caption text-elasi-gold">
+                      <p className="text-caption text-elasi-gold-text">
                         انتخاب ELASI
                       </p>
 
@@ -195,7 +195,7 @@ export default async function Home() {
 
                         <Link
                           href={`/products/${heroProduct.slug}`}
-                          className="shrink-0 text-sm font-medium text-elasi-green transition-colors hover:text-elasi-gold"
+                          className="shrink-0 text-sm font-medium text-elasi-green transition-colors hover:text-elasi-gold-text"
                         >
                           مشاهده محصول
                         </Link>
@@ -205,7 +205,7 @@ export default async function Home() {
                 ) : (
                   <div className="flex h-full min-h-[420px] items-center justify-center px-8 text-center sm:min-h-[520px]">
                     <div>
-                      <p className="text-label tracking-[0.2em] text-elasi-gold">
+                      <p className="text-label tracking-[0.2em] text-elasi-gold-text">
                         ELASI
                       </p>
 
@@ -229,7 +229,7 @@ export default async function Home() {
           <div className="elasi-container py-8 sm:py-10">
             <div className="flex flex-col gap-7">
               <div>
-                <p className="text-caption font-medium tracking-[0.18em] text-elasi-gold">
+                <p className="text-caption font-medium tracking-[0.18em] text-elasi-gold-text">
                   DISCOVER
                 </p>
 
@@ -246,7 +246,7 @@ export default async function Home() {
                       href={`/shop?category=${encodeURIComponent(
                         category.slug,
                       )}`}
-                      className="rounded-full border border-elasi-green/15 bg-elasi-ivory px-5 py-2.5 text-sm font-medium text-elasi-green transition-colors hover:border-elasi-gold hover:text-elasi-gold"
+                      className="rounded-full border border-elasi-border-strong bg-elasi-ivory px-5 py-2.5 text-sm font-medium text-elasi-green transition-colors hover:border-elasi-gold hover:text-elasi-gold-text"
                     >
                       {getCategoryLabel(
                         category.slug,
@@ -270,7 +270,7 @@ export default async function Home() {
       >
         <div className="elasi-container">
           <div className="mb-10 max-w-2xl sm:mb-14">
-            <p className="text-label font-medium tracking-[0.18em] text-elasi-gold">
+            <p className="text-label font-medium tracking-[0.18em] text-elasi-gold-text">
               SIGNATURE COLLECTION
             </p>
 
@@ -293,7 +293,7 @@ export default async function Home() {
           </div>
 
           {showcaseProducts.length === 0 ? (
-            <div className="rounded-[28px] border border-elasi-green/10 bg-white/50 px-6 py-16 text-center">
+            <div className="rounded-card border border-elasi-green/10 bg-white/50 px-6 py-16 text-center">
               <p className="text-body text-elasi-muted">
                 در حال حاضر محصول فعالی برای نمایش وجود
                 ندارد.
@@ -322,7 +322,7 @@ export default async function Home() {
         <div className="elasi-container py-20 sm:py-24 lg:py-28">
           <div className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
             <div>
-              <p className="text-label tracking-[0.2em] text-elasi-gold">
+              <p className="text-label tracking-[0.2em] text-elasi-gold-text">
                 THE ELASI STORY
               </p>
 
@@ -365,7 +365,7 @@ export default async function Home() {
         <div className="elasi-container">
           <div className="relative overflow-hidden rounded-[36px] border border-elasi-green/10 bg-white px-6 py-16 text-center sm:px-10 sm:py-20 lg:px-16">
             <div className="mx-auto max-w-3xl">
-              <p className="text-label tracking-[0.2em] text-elasi-gold">
+              <p className="text-label tracking-[0.2em] text-elasi-gold-text">
                 YOUR STYLE, YOUR STORY
               </p>
 

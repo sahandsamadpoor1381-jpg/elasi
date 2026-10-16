@@ -41,7 +41,7 @@ export function SiteFooter() {
           </div>
 
           <nav aria-label="فروشگاه">
-            <p className="text-caption font-medium tracking-[0.18em] text-elasi-gold">
+            <p className="text-caption font-medium tracking-[0.18em] text-elasi-gold-text">
               فروشگاه
             </p>
 
@@ -50,7 +50,7 @@ export function SiteFooter() {
                 <li key={item.href}>
                   <Link
                     href={item.href}
-                    className="text-sm text-elasi-text transition-colors hover:text-elasi-gold"
+                    className="text-sm text-elasi-text transition-colors hover:text-elasi-gold-text"
                   >
                     {item.label}
                   </Link>
@@ -60,7 +60,7 @@ export function SiteFooter() {
           </nav>
 
           <nav aria-label="خدمات">
-            <p className="text-caption font-medium tracking-[0.18em] text-elasi-gold">
+            <p className="text-caption font-medium tracking-[0.18em] text-elasi-gold-text">
               خدمات
             </p>
 
@@ -69,7 +69,7 @@ export function SiteFooter() {
                 <li key={item.href}>
                   <Link
                     href={item.href}
-                    className="text-sm text-elasi-text transition-colors hover:text-elasi-gold"
+                    className="text-sm text-elasi-text transition-colors hover:text-elasi-gold-text"
                   >
                     {item.label}
                   </Link>
@@ -79,7 +79,7 @@ export function SiteFooter() {
           </nav>
 
           <nav aria-label="حساب کاربری">
-            <p className="text-caption font-medium tracking-[0.18em] text-elasi-gold">
+            <p className="text-caption font-medium tracking-[0.18em] text-elasi-gold-text">
               حساب کاربری
             </p>
 
@@ -88,7 +88,7 @@ export function SiteFooter() {
                 <li key={item.href}>
                   <Link
                     href={item.href}
-                    className="text-sm text-elasi-text transition-colors hover:text-elasi-gold"
+                    className="text-sm text-elasi-text transition-colors hover:text-elasi-gold-text"
                   >
                     {item.label}
                   </Link>

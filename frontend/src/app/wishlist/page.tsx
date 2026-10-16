@@ -15,7 +15,7 @@ function WishlistSkeleton() {
       {Array.from({ length: 3 }).map((_, index) => (
         <li
           key={index}
-          className="overflow-hidden rounded-[28px] border border-elasi-green/10 bg-white/50"
+          className="overflow-hidden rounded-card border border-elasi-green/10 bg-white/50"
         >
           <div className="aspect-[4/5] animate-pulse bg-elasi-green/[0.06]" />
           <div className="p-5">
@@ -37,7 +37,7 @@ export default function WishlistPage() {
     <main className="bg-elasi-ivory pb-20">
       <div className="elasi-container pt-10 sm:pt-14">
         <header className="max-w-3xl">
-          <p className="text-label font-medium tracking-[0.2em] text-elasi-gold">
+          <p className="text-label font-medium tracking-[0.2em] text-elasi-gold-text">
             WISHLIST
           </p>
 
@@ -55,7 +55,7 @@ export default function WishlistPage() {
           {isAuthLoading ? (
             <WishlistSkeleton />
           ) : !isAuthenticated ? (
-            <div className="rounded-[28px] border border-elasi-green/10 bg-white/60 px-6 py-16 text-center">
+            <div className="rounded-card border border-elasi-green/10 bg-white/60 px-6 py-16 text-center">
               <p className="text-lg font-semibold text-elasi-green">
                 برای دیدن علاقه‌مندی‌ها وارد شوید
               </p>
@@ -87,7 +87,7 @@ export default function WishlistPage() {
           ) : error ? (
             <div
               role="alert"
-              className="rounded-[28px] border border-elasi-danger/20 bg-elasi-danger/[0.04] px-6 py-14 text-center"
+              className="rounded-card border border-elasi-danger/20 bg-elasi-danger/[0.04] px-6 py-14 text-center"
             >
               <p className="text-lg font-semibold text-elasi-green">
                 نمایش علاقه‌مندی‌ها ممکن نشد
@@ -98,7 +98,7 @@ export default function WishlistPage() {
               </p>
             </div>
           ) : items.length === 0 ? (
-            <div className="rounded-[28px] border border-elasi-green/10 bg-white/60 px-6 py-16 text-center">
+            <div className="rounded-card border border-elasi-green/10 bg-white/60 px-6 py-16 text-center">
               <p className="text-lg font-semibold text-elasi-green">
                 هنوز محصولی ذخیره نکرده‌اید
               </p>
@@ -136,7 +136,7 @@ export default function WishlistPage() {
                   return (
                     <li
                       key={product.slug}
-                      className="overflow-hidden rounded-[28px] border border-elasi-green/10 bg-white/60"
+                      className="overflow-hidden rounded-card border border-elasi-green/10 bg-white/60"
                     >
                       <Link
                         href={`/products/${product.slug}`}
@@ -167,7 +167,7 @@ export default function WishlistPage() {
                       <div className="p-5 text-right">
                         <Link
                           href={`/products/${product.slug}`}
-                          className="text-base font-semibold text-elasi-text transition-colors hover:text-elasi-gold"
+                          className="text-base font-semibold text-elasi-text transition-colors hover:text-elasi-gold-text"
                         >
                           {product.name}
                         </Link>

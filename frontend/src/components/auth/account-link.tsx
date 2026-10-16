@@ -84,8 +84,8 @@ export function AccountLink({
           transition-colors
           ${
             isActive
-              ? "text-elasi-gold"
-              : "text-elasi-text hover:text-elasi-gold"
+              ? "text-elasi-gold-text"
+              : "text-elasi-text hover:text-elasi-gold-text"
           }
           ${className}
         `}
@@ -173,8 +173,8 @@ export function AccountLink({
         transition-colors
         ${
           isActive
-            ? "bg-elasi-green/5 text-elasi-gold"
-            : "text-elasi-green hover:bg-elasi-green/5 hover:text-elasi-gold"
+            ? "bg-elasi-green/5 text-elasi-gold-text"
+            : "text-elasi-green hover:bg-elasi-green/5 hover:text-elasi-gold-text"
         }
         ${className}
       `}

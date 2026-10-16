@@ -210,7 +210,7 @@ export function LocationSelect({
 
         <span
           aria-hidden="true"
-          className="mr-1 text-elasi-gold"
+          className="mr-1 text-elasi-gold-text"
         >
           *
         </span>
@@ -260,8 +260,8 @@ export function LocationSelect({
           "duration-200",
 
           error
-            ? "border-red-300 bg-red-50/30"
-            : "border-elasi-green/15 bg-elasi-ivory/50",
+            ? "border-elasi-danger/30 bg-elasi-danger/[0.04]"
+            : "border-elasi-border-strong bg-elasi-ivory/50",
 
           disabled
             ? "cursor-not-allowed opacity-45"
@@ -296,7 +296,7 @@ export function LocationSelect({
             "duration-200",
 
             isOpen
-              ? "rotate-180 text-elasi-gold"
+              ? "rotate-180 text-elasi-gold-text"
               : "",
           ].join(" ")}
         />
@@ -306,7 +306,7 @@ export function LocationSelect({
       {error ? (
         <p
           id={errorId}
-          className="mt-2 text-xs text-red-700"
+          className="mt-2 text-xs text-elasi-danger"
         >
           {error}
         </p>

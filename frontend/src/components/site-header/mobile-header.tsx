@@ -32,7 +32,7 @@ export function MobileHeader() {
               onClick={() =>
                 setIsMenuOpen(true)
               }
-              className="flex size-11 justify-self-start items-center justify-center rounded-full text-elasi-green transition-colors hover:bg-elasi-green/5 hover:text-elasi-gold"
+              className="flex size-11 justify-self-start items-center justify-center rounded-full text-elasi-green transition-colors hover:bg-elasi-green/5 hover:text-elasi-gold-text"
             >
               <Menu
                 size={21}
@@ -54,7 +54,7 @@ export function MobileHeader() {
                 href="/search"
                 aria-label="جست‌وجو در محصولات"
                 title="جست‌وجو در محصولات"
-                className="flex size-11 items-center justify-center rounded-full text-elasi-green transition-colors hover:bg-elasi-green/5 hover:text-elasi-gold"
+                className="flex size-11 items-center justify-center rounded-full text-elasi-green transition-colors hover:bg-elasi-green/5 hover:text-elasi-gold-text"
               >
                 <Search
                   size={20}

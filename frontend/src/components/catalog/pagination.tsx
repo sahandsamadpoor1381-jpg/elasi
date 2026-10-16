@@ -61,7 +61,7 @@ export function Pagination({
         <Link
           href={buildHref(currentPage - 1)}
           rel="prev"
-          className={`${linkClasses} border-elasi-green/15 text-elasi-green hover:border-elasi-gold hover:text-elasi-gold`}
+          className={`${linkClasses} border-elasi-border-strong text-elasi-green hover:border-elasi-gold hover:text-elasi-gold-text`}
         >
           قبلی
         </Link>
@@ -79,7 +79,7 @@ export function Pagination({
             className={`${linkClasses} ${
               isCurrent
                 ? "border-elasi-green bg-elasi-green text-elasi-ivory"
-                : "border-elasi-green/15 text-elasi-green hover:border-elasi-gold hover:text-elasi-gold"
+                : "border-elasi-border-strong text-elasi-green hover:border-elasi-gold hover:text-elasi-gold-text"
             }`}
           >
             {formatNumber(page)}
@@ -91,7 +91,7 @@ export function Pagination({
         <Link
           href={buildHref(currentPage + 1)}
           rel="next"
-          className={`${linkClasses} border-elasi-green/15 text-elasi-green hover:border-elasi-gold hover:text-elasi-gold`}
+          className={`${linkClasses} border-elasi-border-strong text-elasi-green hover:border-elasi-gold hover:text-elasi-gold-text`}
         >
           بعدی
         </Link>

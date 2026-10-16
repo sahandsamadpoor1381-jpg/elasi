@@ -28,7 +28,7 @@ export function HeaderActions() {
           text-elasi-green
           transition-colors
           hover:bg-elasi-green/5
-          hover:text-elasi-gold
+          hover:text-elasi-gold-text
         "
       >
         <Search
@@ -54,7 +54,7 @@ export function HeaderActions() {
           text-elasi-green
           transition-colors
           hover:bg-elasi-green/5
-          hover:text-elasi-gold
+          hover:text-elasi-gold-text
         "
       >
         <Heart

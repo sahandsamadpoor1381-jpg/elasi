@@ -24,8 +24,8 @@ export function MainNavigation() {
                 aria-current={isActive ? "page" : undefined}
                 className={`relative py-2 text-body-sm font-medium transition-colors ${
                   isActive
-                    ? "text-elasi-gold"
-                    : "text-elasi-text hover:text-elasi-gold"
+                    ? "text-elasi-gold-text"
+                    : "text-elasi-text hover:text-elasi-gold-text"
                 }`}
               >
                 {item.label}

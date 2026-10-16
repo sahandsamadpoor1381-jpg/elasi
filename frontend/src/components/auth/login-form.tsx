@@ -442,7 +442,7 @@ export function LoginForm({
         <LoaderCircle
           size={26}
           strokeWidth={1.5}
-          className="animate-spin text-elasi-gold"
+          className="animate-spin text-elasi-gold-text"
           aria-hidden="true"
         />
 
@@ -462,7 +462,7 @@ export function LoginForm({
           aria-hidden="true"
         />
 
-        <p className="mb-3 text-xs font-medium tracking-[0.2em] text-elasi-gold">
+        <p className="mb-3 text-xs font-medium tracking-[0.2em] text-elasi-gold-text">
           ELASI ACCOUNT
         </p>
 
@@ -491,13 +491,13 @@ export function LoginForm({
             mb-6
             rounded-2xl
             border
-            border-red-900/10
-            bg-red-950/[0.035]
+            border-elasi-danger/20
+            bg-elasi-danger/[0.05]
             px-4
             py-3
             text-sm
             leading-7
-            text-red-900
+            text-elasi-danger
           "
         >
           {displayedError}
@@ -553,7 +553,7 @@ export function LoginForm({
                 w-full
                 rounded-2xl
                 border
-                border-elasi-green/15
+                border-elasi-border-strong
                 bg-white
                 px-4
                 text-left
@@ -665,7 +665,7 @@ export function LoginForm({
                 className="
                   text-xs
                   font-medium
-                  text-elasi-gold
+                  text-elasi-gold-text
                   transition
                   hover:text-elasi-green
                   disabled:cursor-not-allowed
@@ -716,7 +716,7 @@ export function LoginForm({
                 w-full
                 rounded-2xl
                 border
-                border-elasi-green/15
+                border-elasi-border-strong
                 bg-white
                 px-5
                 text-center
@@ -810,7 +810,7 @@ export function LoginForm({
                 className="
                   text-xs
                   font-medium
-                  text-elasi-gold
+                  text-elasi-gold-text
                   transition
                   hover:text-elasi-green
                   disabled:cursor-not-allowed

@@ -100,7 +100,7 @@ export function WishlistButton({
           className={`flex min-h-12 w-full items-center justify-center gap-2 rounded-full border px-6 text-sm font-medium transition-colors ${
             saved
               ? "border-elasi-gold bg-elasi-gold/10 text-elasi-green"
-              : "border-elasi-green/15 text-elasi-green hover:border-elasi-gold hover:text-elasi-gold"
+              : "border-elasi-border-strong text-elasi-green hover:border-elasi-gold hover:text-elasi-gold-text"
           }`}
         >
           {icon}
@@ -131,8 +131,8 @@ export function WishlistButton({
         title={label}
         className={`flex size-10 items-center justify-center rounded-full border backdrop-blur transition-colors ${
           saved
-            ? "border-elasi-gold bg-elasi-ivory/90 text-elasi-gold"
-            : "border-elasi-green/12 bg-elasi-ivory/85 text-elasi-green hover:border-elasi-gold hover:text-elasi-gold"
+            ? "border-elasi-gold bg-elasi-ivory/90 text-elasi-gold-text"
+            : "border-elasi-green/12 bg-elasi-ivory/85 text-elasi-green hover:border-elasi-gold hover:text-elasi-gold-text"
         }`}
       >
         {icon}

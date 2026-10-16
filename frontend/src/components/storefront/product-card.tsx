@@ -66,7 +66,7 @@ export function ProductCard({ product }: ProductCardProps) {
         href={`/products/${product.slug}`}
         className="block"
       >
-        <div className="relative aspect-[4/5] overflow-hidden rounded-[28px] bg-white">
+        <div className="relative aspect-[4/5] overflow-hidden rounded-card bg-white">
           {primaryImage ? (
             <Image
               src={primaryImage.image}
@@ -91,14 +91,14 @@ export function ProductCard({ product }: ProductCardProps) {
         <div className="px-1 pt-5 text-right">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-caption text-elasi-gold">
+              <p className="text-caption text-elasi-gold-text">
                 {getCategoryLabel(
                   product.category.slug,
                   product.category.name,
                 )}
               </p>
 
-              <h3 className="mt-1 text-lg font-semibold text-elasi-text transition-colors group-hover:text-elasi-gold">
+              <h3 className="mt-1 text-lg font-semibold text-elasi-text transition-colors group-hover:text-elasi-gold-text">
                 {product.name}
               </h3>
             </div>
@@ -132,7 +132,7 @@ export function ProductCard({ product }: ProductCardProps) {
               </p>
             )}
 
-            <span className="text-sm font-medium text-elasi-green transition-colors group-hover:text-elasi-gold">
+            <span className="text-sm font-medium text-elasi-green transition-colors group-hover:text-elasi-gold-text">
               مشاهده محصول
             </span>
           </div>

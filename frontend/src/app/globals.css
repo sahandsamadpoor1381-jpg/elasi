@@ -14,15 +14,29 @@
   --elasi-gold: #b8945a;
   --elasi-ivory: #f8f4ec;
 
+  /* Gold as TEXT. The brand gold reaches only 2.58:1 on ivory, which
+     fails WCAG AA (4.5:1) for the small labels, links and eyebrows that
+     use it. This deeper antique gold measures 5.33:1 on ivory, 5.85:1
+     on white and 5.10:1 on the soft surface, so small gold copy stays
+     on-brand and readable. The brighter --elasi-gold remains the
+     decorative accent (rules, borders, fills) and the gold used on the
+     deep green surface, where it already measures 5.34:1. */
+  --elasi-gold-text: #7e6029;
+
   /* Neutral colors */
   --elasi-text: #171717;
   --elasi-muted: #6e6a62;
   --elasi-white: #ffffff;
   --elasi-black: #000000;
 
-  /* Borders */
+  /* Borders
+     --elasi-border is decorative (hairlines, dividers).
+     --elasi-border-strong identifies interactive controls (inputs,
+     chips, secondary buttons) and must reach 3:1 against the surface
+     per WCAG 1.4.11: this value measures ~3.3:1 on ivory, where the
+     previous 0.2 alpha measured only 1.48:1. */
   --elasi-border: rgba(21, 42, 36, 0.12);
-  --elasi-border-strong: rgba(21, 42, 36, 0.2);
+  --elasi-border-strong: rgba(21, 42, 36, 0.55);
 
   /* Surfaces */
   --elasi-surface: #ffffff;
@@ -34,28 +48,42 @@
   --elasi-danger: #a83232;
 
   /* Typography */
- --elasi-font-sans: var(--font-peyda), Tahoma, Arial, sans-serif;
+  --elasi-font-sans: var(--font-peyda), Tahoma, Arial, sans-serif;
   --elasi-font-serif: Georgia, "Times New Roman", serif;
 
   /* Type scale */
---text-display: clamp(2.75rem, 5vw, 4.5rem);
---text-h1: clamp(2rem, 4vw, 3.5rem);
---text-h2: clamp(1.75rem, 3vw, 2.625rem);
---text-h3: clamp(1.375rem, 2vw, 1.75rem);
+  --text-display: clamp(2.75rem, 5vw, 4.5rem);
+  --text-h1: clamp(2rem, 4vw, 3.5rem);
+  --text-h2: clamp(1.75rem, 3vw, 2.625rem);
+  --text-h3: clamp(1.375rem, 2vw, 1.75rem);
 
---text-body-lg: 1.125rem;
---text-body: 1rem;
---text-body-sm: 0.875rem;
---text-caption: 0.75rem;
---text-label: 0.8125rem;
+  --text-body-lg: 1.125rem;
+  --text-body: 1rem;
+  --text-body-sm: 0.875rem;
+  --text-caption: 0.75rem;
+  --text-label: 0.8125rem;
 
---line-display: 1.15;
---line-heading: 1.3;
---line-body: 1.8;
+  --line-display: 1.15;
+  --line-heading: 1.3;
+  --line-body: 1.8;
+
+  /* Foundations */
+  --elasi-min-width: 320px;
+  --elasi-base-font-size: 16px;
+  --elasi-base-font-size-compact: 15px;
+  --control-height: 48px;
+
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 4px;
 
   /* Layout */
   --elasi-container: 1200px;
   --elasi-page-padding: 24px;
+
+  /* Product grid: one definition shared by the listing and its
+     skeleton, so the loading state always matches the loaded layout. */
+  --grid-product-min: 240px;
+  --card-max-width: 360px;
 
   /* Spacing */
   --space-1: 4px;
@@ -64,6 +92,7 @@
   --space-4: 16px;
   --space-5: 20px;
   --space-6: 24px;
+  --space-7: 28px;
   --space-8: 32px;
   --space-10: 40px;
   --space-12: 48px;
@@ -86,6 +115,8 @@
   /* Motion */
   --transition-fast: 160ms ease;
   --transition-base: 240ms ease;
+  --transition-slow: 360ms ease;
+  --transition-deliberate: 520ms ease;
 
   /* Layering */
   --z-header: 100;
@@ -99,12 +130,29 @@
    --------------------------------------------------------- */
 
 @theme inline {
+  /* Every semantic token is mapped, so a utility can never silently
+     fall back to nothing. text-elasi-danger, bg-elasi-surface-soft and
+     friends emitted NO css before this was complete — error states were
+     rendering unstyled. */
   --color-elasi-green: var(--elasi-green);
   --color-elasi-gold: var(--elasi-gold);
+  --color-elasi-gold-text: var(--elasi-gold-text);
   --color-elasi-ivory: var(--elasi-ivory);
   --color-elasi-text: var(--elasi-text);
   --color-elasi-muted: var(--elasi-muted);
   --color-elasi-white: var(--elasi-white);
+
+  --color-elasi-surface: var(--elasi-surface);
+  --color-elasi-surface-soft: var(--elasi-surface-soft);
+
+  --color-elasi-border: var(--elasi-border);
+  --color-elasi-border-strong: var(--elasi-border-strong);
+
+  --color-elasi-success: var(--elasi-success);
+  --color-elasi-warning: var(--elasi-warning);
+  --color-elasi-danger: var(--elasi-danger);
+
+  --radius-card: var(--radius-xl);
 
   --font-sans: var(--elasi-font-sans);
   --font-serif: var(--elasi-font-serif);
@@ -121,7 +169,7 @@
 }
 
 html {
-  min-width: 320px;
+  min-width: var(--elasi-min-width);
   min-height: 100%;
   background: var(--elasi-ivory);
   scroll-behavior: smooth;
@@ -129,7 +177,7 @@ html {
 }
 
 body {
-  min-width: 320px;
+  min-width: var(--elasi-min-width);
   min-height: 100vh;
   margin: 0;
 
@@ -137,7 +185,7 @@ body {
   color: var(--elasi-text);
 
   font-family: var(--elasi-font-sans);
-  font-size: 16px;
+  font-size: var(--elasi-base-font-size);
   font-weight: 400;
   line-height: 1.8;
 
@@ -307,8 +355,10 @@ p {
    --------------------------------------------------------- */
 
 :focus-visible {
-  outline: 2px solid var(--elasi-gold);
-  outline-offset: 4px;
+  /* 5.33:1 on ivory — the brand gold itself is only 2.58:1, which
+     would make the focus indicator hard to see (WCAG 1.4.11). */
+  outline: var(--focus-ring-width) solid var(--elasi-gold-text);
+  outline-offset: var(--focus-ring-offset);
 }
 
 :focus:not(:focus-visible) {
@@ -333,6 +383,32 @@ p {
 /* ---------------------------------------------------------
    6. Layout Utilities
    --------------------------------------------------------- */
+
+.elasi-product-grid {
+  display: grid;
+
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(min(100%, var(--grid-product-min)), 1fr)
+  );
+
+  justify-items: center;
+
+  column-gap: var(--space-6);
+  row-gap: var(--space-10);
+}
+
+@media (min-width: 640px) {
+  .elasi-product-grid {
+    column-gap: var(--space-8);
+    row-gap: var(--space-12);
+  }
+}
+
+.elasi-product-card {
+  width: 100%;
+  max-width: var(--card-max-width);
+}
 
 .elasi-container {
   width: min(
@@ -368,13 +444,13 @@ p {
 
 .elasi-button {
   display: inline-flex;
-  min-height: 48px;
+  min-height: var(--control-height);
 
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
 
-  padding: 12px 28px;
+  padding: var(--space-3) var(--space-7);
 
   border: 1px solid transparent;
   border-radius: var(--radius-pill);
@@ -445,7 +521,7 @@ p {
   }
 
   body {
-    font-size: 15px;
+    font-size: var(--elasi-base-font-size-compact);
   }
 
   .elasi-section {
@@ -459,16 +535,16 @@ p {
 
 @media (prefers-reduced-motion: reduce) {
   html {
-    scroll-behavior: auto;
+    scroll-behavior: auto; /* ds-allow-hardcode: reduced-motion */
   }
 
   *,
   *::before,
   *::after {
-    scroll-behavior: auto !important;
-    animation-duration: 0.01ms !important;
+    scroll-behavior: auto !important; /* ds-allow-hardcode */
+    animation-duration: 0.01ms !important; /* ds-allow-hardcode */
     animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important; /* ds-allow-hardcode */
   }
 }
 
@@ -478,7 +554,7 @@ p {
 
 .elasi-mobile-drawer-overlay {
   opacity: 0;
-  transition: opacity 360ms ease;
+  transition: opacity var(--transition-slow);
 }
 
 .elasi-mobile-drawer-overlay[data-state="open"] {
@@ -489,8 +565,9 @@ p {
   clip-path: inset(0 0 0 100%);
   opacity: 0.98;
   transition:
-    clip-path 520ms cubic-bezier(0.76, 0, 0.24, 1),
-    opacity 320ms ease;
+    clip-path var(--transition-deliberate)
+      cubic-bezier(0.76, 0, 0.24, 1),
+    opacity var(--transition-slow) ease;
   will-change: clip-path, opacity;
 }
 
@@ -501,27 +578,28 @@ p {
 
 .elasi-mobile-drawer-content {
   opacity: 0;
-  transform: translateX(10px);
+  transform: translateX(var(--space-3));
   transition:
-    opacity 300ms ease,
-    transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+    opacity var(--transition-base) ease,
+    transform var(--transition-deliberate)
+      cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .elasi-mobile-drawer-content[data-state="open"] {
   opacity: 1;
   transform: translateX(0);
-  transition-delay: 120ms;
+  transition-delay: var(--transition-fast);
 }
 
 .elasi-mobile-drawer-content[data-state="closed"] {
-  transition-delay: 0ms;
+  transition-delay: 0ms; /* ds-allow-hardcode: instant, no delay */
 }
 
 @media (prefers-reduced-motion: reduce) {
   .elasi-mobile-drawer-overlay,
   .elasi-mobile-drawer-panel,
   .elasi-mobile-drawer-content {
-    transition-duration: 1ms;
-    transition-delay: 0ms;
+    transition-duration: 1ms; /* ds-allow-hardcode: reduced-motion */
+    transition-delay: 0ms; /* ds-allow-hardcode: reduced-motion */
   }
 }

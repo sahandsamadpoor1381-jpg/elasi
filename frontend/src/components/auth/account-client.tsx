@@ -154,7 +154,7 @@ export function AccountClient() {
             <LoaderCircle
               size={21}
               strokeWidth={1.5}
-              className="animate-spin text-elasi-gold"
+              className="animate-spin text-elasi-gold-text"
               aria-hidden="true"
             />
           </div>
@@ -189,7 +189,7 @@ export function AccountClient() {
                 text-[10px]
                 font-medium
                 tracking-[0.28em]
-                text-elasi-gold
+                text-elasi-gold-text
               "
             >
               ELASI PRIVATE PROFILE
@@ -259,13 +259,13 @@ export function AccountClient() {
             mb-6
             rounded-[1.25rem]
             border
-            border-red-900/10
-            bg-red-950/[0.035]
+            border-elasi-danger/20
+            bg-elasi-danger/[0.05]
             px-5
             py-4
             text-sm
             leading-7
-            text-red-900
+            text-elasi-danger
           "
         >
           {error}
@@ -406,7 +406,7 @@ export function AccountClient() {
               className="flex items-start justify-between"
             >
               <div>
-                <p className="text-[10px] font-medium tracking-[0.32em] text-elasi-gold">
+                <p className="text-[10px] font-medium tracking-[0.32em] text-elasi-gold-text">
                   ELASI
                 </p>
 
@@ -472,7 +472,7 @@ export function AccountClient() {
                     text-[9px]
                     font-medium
                     tracking-[0.26em]
-                    text-elasi-gold
+                    text-elasi-gold-text
                   "
                 >
                   PROFILE HOLDER
@@ -549,7 +549,7 @@ export function AccountClient() {
                 <ShieldCheck
                   size={23}
                   strokeWidth={1.3}
-                  className="text-elasi-gold"
+                  className="text-elasi-gold-text"
                   aria-hidden="true"
                 />
               </div>
@@ -586,7 +586,7 @@ export function AccountClient() {
                   text-[9px]
                   font-medium
                   tracking-[0.26em]
-                  text-elasi-gold
+                  text-elasi-gold-text
                 "
               >
                 ACCOUNT RECORD
@@ -636,7 +636,7 @@ export function AccountClient() {
                   transition-all
                   duration-300
                   group-hover:border-elasi-gold/45
-                  group-hover:text-elasi-gold
+                  group-hover:text-elasi-gold-text
                   sm:row-span-1
                 "
               >
@@ -698,7 +698,7 @@ export function AccountClient() {
                   transition-all
                   duration-300
                   group-hover:border-elasi-gold/45
-                  group-hover:text-elasi-gold
+                  group-hover:text-elasi-gold-text
                   sm:row-span-1
                 "
               >
@@ -791,7 +791,7 @@ export function AccountClient() {
                   transition-all
                   duration-300
                   group-hover:border-elasi-gold/45
-                  group-hover:text-elasi-gold
+                  group-hover:text-elasi-gold-text
                   sm:row-span-1
                 "
               >
@@ -915,7 +915,7 @@ export function AccountClient() {
                 justify-between
                 rounded-full
                 border
-                border-elasi-green/15
+                border-elasi-border-strong
                 bg-transparent
                 px-5
                 transition-all

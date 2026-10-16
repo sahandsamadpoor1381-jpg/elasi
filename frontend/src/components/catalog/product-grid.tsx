@@ -11,11 +11,11 @@ export function ProductGrid({
   products: ProductSummary[];
 }) {
   return (
-    <ul className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,240px),1fr))] justify-items-center gap-x-6 gap-y-10 sm:gap-x-8 sm:gap-y-12">
+    <ul className="elasi-product-grid">
       {products.map((product) => (
         <li
           key={product.slug}
-          className="w-full max-w-[360px]"
+          className="elasi-product-card"
         >
           <ProductCard product={product} />
         </li>
@@ -35,7 +35,7 @@ export function EmptyCatalogState({
   action?: { href: string; label: string };
 }) {
   return (
-    <div className="rounded-[28px] border border-elasi-green/10 bg-white/60 px-6 py-16 text-center">
+    <div className="rounded-card border border-elasi-green/10 bg-white/60 px-6 py-16 text-center">
       <p className="text-lg font-semibold text-elasi-green">
         {title}
       </p>
@@ -65,7 +65,7 @@ export function CatalogErrorState({
   return (
     <div
       role="alert"
-      className="rounded-[28px] border border-elasi-danger/20 bg-elasi-danger/[0.04] px-6 py-14 text-center"
+      className="rounded-card border border-elasi-danger/20 bg-elasi-danger/[0.04] px-6 py-14 text-center"
     >
       <p className="text-lg font-semibold text-elasi-green">
         نمایش محصولات ممکن نشد

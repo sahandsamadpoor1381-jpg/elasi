@@ -218,7 +218,7 @@ export function CartPageClient() {
         <div className="elasi-container">
           <div
             className="
-              rounded-[28px]
+              rounded-card
               border
               border-elasi-green/10
               bg-white/50
@@ -260,7 +260,7 @@ export function CartPageClient() {
               sm:py-20
             "
           >
-            <p className="text-label tracking-[0.18em] text-elasi-gold">
+            <p className="text-label tracking-[0.18em] text-elasi-gold-text">
               YOUR CART
             </p>
 
@@ -297,7 +297,7 @@ export function CartPageClient() {
       <div className="elasi-container">
         {/* Page heading */}
         <div className="mb-10 sm:mb-14">
-          <p className="text-label tracking-[0.18em] text-elasi-gold">
+          <p className="text-label tracking-[0.18em] text-elasi-gold-text">
             YOUR CART
           </p>
 
@@ -321,12 +321,12 @@ export function CartPageClient() {
               mb-6
               rounded-[18px]
               border
-              border-red-200
-              bg-red-50
+              border-elasi-danger/20
+              bg-elasi-danger/[0.05]
               px-5
               py-4
               text-sm
-              text-red-700
+              text-elasi-danger
             "
           >
             {visibleError}
@@ -436,7 +436,7 @@ export function CartPageClient() {
                                 font-semibold
                                 text-elasi-text
                                 transition-colors
-                                hover:text-elasi-gold
+                                hover:text-elasi-gold-text
                               "
                             >
                               {
@@ -528,7 +528,7 @@ export function CartPageClient() {
                               items-center
                               rounded-full
                               border
-                              border-elasi-green/15
+                              border-elasi-border-strong
                               bg-elasi-ivory
                             "
                             aria-label="تعداد محصول"
@@ -556,7 +556,7 @@ export function CartPageClient() {
                                 text-lg
                                 text-elasi-green
                                 transition-colors
-                                hover:text-elasi-gold
+                                hover:text-elasi-gold-text
                                 disabled:cursor-not-allowed
                                 disabled:opacity-30
                               "
@@ -594,7 +594,7 @@ export function CartPageClient() {
                                 text-lg
                                 text-elasi-green
                                 transition-colors
-                                hover:text-elasi-gold
+                                hover:text-elasi-gold-text
                                 disabled:cursor-not-allowed
                                 disabled:opacity-30
                               "
@@ -619,7 +619,7 @@ export function CartPageClient() {
                               text-elasi-muted
                               underline-offset-4
                               transition-colors
-                              hover:text-red-700
+                              hover:text-elasi-danger
                               hover:underline
                               disabled:cursor-not-allowed
                               disabled:opacity-40
@@ -642,7 +642,7 @@ export function CartPageClient() {
           {/* Summary */}
           <aside
             className="
-              rounded-[28px]
+              rounded-card
               border
               border-elasi-green/10
               bg-white
@@ -651,7 +651,7 @@ export function CartPageClient() {
               lg:top-8
             "
           >
-            <p className="text-label tracking-[0.15em] text-elasi-gold">
+            <p className="text-label tracking-[0.15em] text-elasi-gold-text">
               ORDER SUMMARY
             </p>
 

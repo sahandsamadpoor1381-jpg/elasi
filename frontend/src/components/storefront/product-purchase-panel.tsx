@@ -192,7 +192,7 @@ export function ProductPurchasePanel({
     <div>
       {/* Product identity */}
       <div>
-        <p className="text-caption font-medium tracking-[0.14em] text-elasi-gold">
+        <p className="text-caption font-medium tracking-[0.14em] text-elasi-gold-text">
           {getCategoryLabel(
             product.category.slug,
             product.category.name,
@@ -392,7 +392,7 @@ export function ProductPurchasePanel({
         {cartError ? (
           <p
             role="alert"
-            className="mt-3 text-center text-sm text-red-700"
+            className="mt-3 text-center text-sm text-elasi-danger"
           >
             {cartError}
           </p>
@@ -402,7 +402,7 @@ export function ProductPurchasePanel({
       {/* Product specifications */}
       {selectedVariant ? (
         <div className="mt-10 border-t border-elasi-green/10 pt-7">
-          <p className="text-caption font-medium tracking-[0.12em] text-elasi-gold">
+          <p className="text-caption font-medium tracking-[0.12em] text-elasi-gold-text">
             مشخصات محصول
           </p>
 

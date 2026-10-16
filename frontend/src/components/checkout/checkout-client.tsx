@@ -300,7 +300,7 @@ function FieldLabel({
 
       {required ? (
         <span
-          className="mr-1 text-elasi-gold"
+          className="mr-1 text-elasi-gold-text"
           aria-hidden="true"
         >
           *
@@ -912,7 +912,7 @@ export function CheckoutClient() {
       <section className="elasi-section">
         <div className="elasi-container">
           <div className="rounded-[30px] border border-elasi-green/10 bg-white/60 px-6 py-24 text-center">
-            <p className="text-label tracking-[0.18em] text-elasi-gold">
+            <p className="text-label tracking-[0.18em] text-elasi-gold-text">
               SECURE CHECKOUT
             </p>
 
@@ -949,7 +949,7 @@ export function CheckoutClient() {
         <div className="elasi-container">
           <div className="mx-auto max-w-3xl overflow-hidden rounded-[36px] border border-elasi-green/10 bg-white shadow-[0_24px_70px_rgba(21,42,36,0.06)]">
             <div className="bg-elasi-green px-6 py-10 text-center sm:px-10 sm:py-14">
-              <div className="mx-auto flex size-14 items-center justify-center rounded-full border border-elasi-gold/40 bg-white/5 text-elasi-gold">
+              <div className="mx-auto flex size-14 items-center justify-center rounded-full border border-elasi-gold/40 bg-white/5 text-elasi-gold-text">
                 <Check
                   size={26}
                   strokeWidth={1.6}
@@ -958,7 +958,7 @@ export function CheckoutClient() {
               </div>
 
 
-              <p className="mt-6 text-label tracking-[0.2em] text-elasi-gold">
+              <p className="mt-6 text-label tracking-[0.2em] text-elasi-gold-text">
                 ORDER CREATED
               </p>
 
@@ -967,7 +967,7 @@ export function CheckoutClient() {
                 className="mt-3"
                 style={{
                   color:
-                    "#FFFFFF",
+                    "var(--elasi-white)",
                 }}
               >
                 سفارش شما ثبت شد
@@ -1058,7 +1058,7 @@ export function CheckoutClient() {
         <div className="elasi-container">
           <div className="mx-auto max-w-2xl rounded-[32px] border border-elasi-green/10 bg-white px-6 py-16 text-center sm:px-10">
             <PackageCheck
-              className="mx-auto text-elasi-gold"
+              className="mx-auto text-elasi-gold-text"
               size={34}
               strokeWidth={1.5}
               aria-hidden="true"
@@ -1093,14 +1093,14 @@ export function CheckoutClient() {
           <div className="flex flex-wrap items-center gap-3 text-sm text-elasi-muted">
             <Link
               href="/cart"
-              className="transition-colors hover:text-elasi-gold"
+              className="transition-colors hover:text-elasi-gold-text"
             >
               سبد خرید
             </Link>
 
             <span
               aria-hidden="true"
-              className="text-elasi-gold/60"
+              className="text-elasi-gold-text/60"
             >
               /
             </span>
@@ -1111,7 +1111,7 @@ export function CheckoutClient() {
           </div>
 
 
-          <p className="mt-7 text-label tracking-[0.2em] text-elasi-gold">
+          <p className="mt-7 text-label tracking-[0.2em] text-elasi-gold-text">
             SECURE CHECKOUT
           </p>
 
@@ -1137,7 +1137,7 @@ export function CheckoutClient() {
           <div className="space-y-6">
             <section className="rounded-[30px] border border-elasi-green/10 bg-white p-5 sm:p-7 lg:p-8">
               <div className="flex items-start gap-4 border-b border-elasi-green/10 pb-6">
-                <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-elasi-green text-elasi-gold">
+                <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-elasi-green text-elasi-gold-text">
                   <MapPin
                     size={20}
                     strokeWidth={1.6}
@@ -1146,7 +1146,7 @@ export function CheckoutClient() {
                 </div>
 
                 <div>
-                  <p className="text-label tracking-[0.15em] text-elasi-gold">
+                  <p className="text-label tracking-[0.15em] text-elasi-gold-text">
                     DELIVERY DETAILS
                   </p>
 
@@ -1191,13 +1191,13 @@ export function CheckoutClient() {
                         ? "recipient_name-error"
                         : undefined
                     }
-                    className="w-full rounded-[16px] border border-elasi-green/15 bg-elasi-ivory/50 px-4 py-3.5 text-sm text-elasi-text outline-none transition focus:border-elasi-gold focus:bg-white"
+                    className="w-full rounded-[16px] border border-elasi-border-strong bg-elasi-ivory/50 px-4 py-3.5 text-sm text-elasi-text outline-none transition focus:border-elasi-gold focus:bg-white"
                   />
 
                   {fieldErrors.recipient_name ? (
                     <p
                       id="recipient_name-error"
-                      className="mt-2 text-xs text-red-700"
+                      className="mt-2 text-xs text-elasi-danger"
                     >
                       {
                         fieldErrors.recipient_name
@@ -1239,7 +1239,7 @@ export function CheckoutClient() {
                         ? "phone_number-error"
                         : undefined
                     }
-                    className="w-full rounded-[16px] border border-elasi-green/15 bg-elasi-ivory/50 px-4 py-3.5 text-left text-sm text-elasi-text outline-none transition focus:border-elasi-gold focus:bg-white"
+                    className="w-full rounded-[16px] border border-elasi-border-strong bg-elasi-ivory/50 px-4 py-3.5 text-left text-sm text-elasi-text outline-none transition focus:border-elasi-gold focus:bg-white"
                   />
 
                   <p className="mt-2 text-xs leading-6 text-elasi-muted">
@@ -1251,7 +1251,7 @@ export function CheckoutClient() {
                   {fieldErrors.phone_number ? (
                     <p
                       id="phone_number-error"
-                      className="mt-2 text-xs text-red-700"
+                      className="mt-2 text-xs text-elasi-danger"
                     >
                       {
                         fieldErrors.phone_number
@@ -1339,13 +1339,13 @@ export function CheckoutClient() {
                         ? "postal_code-error"
                         : undefined
                     }
-                    className="w-full rounded-[16px] border border-elasi-green/15 bg-elasi-ivory/50 px-4 py-3.5 text-left text-sm text-elasi-text outline-none transition focus:border-elasi-gold focus:bg-white"
+                    className="w-full rounded-[16px] border border-elasi-border-strong bg-elasi-ivory/50 px-4 py-3.5 text-left text-sm text-elasi-text outline-none transition focus:border-elasi-gold focus:bg-white"
                   />
 
                   {fieldErrors.postal_code ? (
                     <p
                       id="postal_code-error"
-                      className="mt-2 text-xs text-red-700"
+                      className="mt-2 text-xs text-elasi-danger"
                     >
                       {
                         fieldErrors.postal_code
@@ -1389,7 +1389,7 @@ export function CheckoutClient() {
                       w-full
                       rounded-[16px]
                       border
-                      border-elasi-green/15
+                      border-elasi-border-strong
                       bg-elasi-ivory/50
                       px-4
                       py-3.5
@@ -1406,7 +1406,7 @@ export function CheckoutClient() {
                   {fieldErrors.address_line ? (
                     <p
                       id="address_line-error"
-                      className="mt-2 text-xs text-red-700"
+                      className="mt-2 text-xs text-elasi-danger"
                     >
                       {
                         fieldErrors.address_line
@@ -1431,7 +1431,7 @@ export function CheckoutClient() {
                     onChange={
                       handleInputChange
                     }
-                    className="w-full rounded-[16px] border border-elasi-green/15 bg-elasi-ivory/50 px-4 py-3.5 text-sm text-elasi-text outline-none transition focus:border-elasi-gold focus:bg-white"
+                    className="w-full rounded-[16px] border border-elasi-border-strong bg-elasi-ivory/50 px-4 py-3.5 text-sm text-elasi-text outline-none transition focus:border-elasi-gold focus:bg-white"
                   />
                 </div>
 
@@ -1451,7 +1451,7 @@ export function CheckoutClient() {
                     onChange={
                       handleInputChange
                     }
-                    className="w-full rounded-[16px] border border-elasi-green/15 bg-elasi-ivory/50 px-4 py-3.5 text-sm text-elasi-text outline-none transition focus:border-elasi-gold focus:bg-white"
+                    className="w-full rounded-[16px] border border-elasi-border-strong bg-elasi-ivory/50 px-4 py-3.5 text-sm text-elasi-text outline-none transition focus:border-elasi-gold focus:bg-white"
                   />
                 </div>
 
@@ -1477,7 +1477,7 @@ export function CheckoutClient() {
                       w-full
                       rounded-[16px]
                       border
-                      border-elasi-green/15
+                      border-elasi-border-strong
                       bg-elasi-ivory/50
                       px-4
                       py-3.5
@@ -1500,7 +1500,7 @@ export function CheckoutClient() {
               <LockKeyhole
                 size={18}
                 strokeWidth={1.6}
-                className="mt-1 shrink-0 text-elasi-gold"
+                className="mt-1 shrink-0 text-elasi-gold-text"
                 aria-hidden="true"
               />
 
@@ -1514,7 +1514,7 @@ export function CheckoutClient() {
 
 
           <aside className="rounded-[30px] border border-elasi-green/10 bg-white p-6 xl:sticky xl:top-8">
-            <p className="text-label tracking-[0.18em] text-elasi-gold">
+            <p className="text-label tracking-[0.18em] text-elasi-gold-text">
               ORDER REVIEW
             </p>
 
@@ -1620,7 +1620,7 @@ export function CheckoutClient() {
             {submitError ? (
               <div
                 role="alert"
-                className="mt-5 rounded-[16px] border border-red-200 bg-red-50 px-4 py-3 text-sm leading-7 text-red-700"
+                className="mt-5 rounded-[16px] border border-elasi-danger/20 bg-elasi-danger/[0.05] px-4 py-3 text-sm leading-7 text-elasi-danger"
               >
                 {
                   submitError
@@ -1644,7 +1644,7 @@ export function CheckoutClient() {
 
             <Link
               href="/cart"
-              className="mt-4 flex min-h-11 items-center justify-center gap-2 text-sm font-medium text-elasi-muted transition-colors hover:text-elasi-gold"
+              className="mt-4 flex min-h-11 items-center justify-center gap-2 text-sm font-medium text-elasi-muted transition-colors hover:text-elasi-gold-text"
             >
               <ArrowLeft
                 size={17}

@@ -99,7 +99,7 @@ export default async function ArticlePage({
             <li>
               <Link
                 href="/"
-                className="transition-colors hover:text-elasi-gold"
+                className="transition-colors hover:text-elasi-gold-text"
               >
                 خانه
               </Link>
@@ -110,7 +110,7 @@ export default async function ArticlePage({
             <li>
               <Link
                 href="/blog"
-                className="transition-colors hover:text-elasi-gold"
+                className="transition-colors hover:text-elasi-gold-text"
               >
                 مجله
               </Link>
@@ -139,7 +139,7 @@ export default async function ArticlePage({
         </header>
 
         {cover ? (
-          <div className="mt-10 overflow-hidden rounded-[28px] border border-elasi-green/10 bg-white/60">
+          <div className="mt-10 overflow-hidden rounded-card border border-elasi-green/10 bg-white/60">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={cover}
@@ -160,7 +160,7 @@ export default async function ArticlePage({
           ))}
         </div>
 
-        <div className="mt-14 flex flex-col items-start gap-5 rounded-[28px] border border-elasi-green/10 bg-white/60 p-7 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-14 flex flex-col items-start gap-5 rounded-card border border-elasi-green/10 bg-white/60 p-7 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm leading-7 text-elasi-muted">
             مجموعه‌ی محصولات ELASI را ببینید یا مطلب دیگری
             از مجله بخوانید.
