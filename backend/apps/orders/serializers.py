@@ -275,5 +275,7 @@ class OrderSerializer(
             "unit_number",
             "customer_note",
             "items",
+            "reservation_expires_at",
+            "paid_at",
             "created_at",
         )

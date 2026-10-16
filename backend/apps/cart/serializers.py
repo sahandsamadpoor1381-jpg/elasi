@@ -1,4 +1,3 @@
-from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
 
 from .models import Cart, CartItem
@@ -100,12 +99,7 @@ class CartItemSerializer(
         self,
         obj: CartItem,
     ) -> int:
-        try:
-            return (
-                obj.variant.inventory.available
-            )
-        except ObjectDoesNotExist:
-            return 0
+        return obj.variant.get_available()
 
     def get_image(
         self,

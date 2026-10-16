@@ -1,3 +1,4 @@
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 
 
@@ -185,6 +186,21 @@ class ProductVariant(models.Model):
     updated_at = models.DateTimeField(
         auto_now=True,
     )
+
+    def get_available(self) -> int:
+        """Available-to-sell units for this variant.
+
+        Inactive variants are not sellable, so their availability is
+        reported as 0 (previously the raw on_hand-reserved number was
+        shown even for inactive variants, which was misleading).
+        """
+        if not self.is_active:
+            return 0
+
+        try:
+            return max(0, self.inventory.available)
+        except ObjectDoesNotExist:
+            return 0
 
     def __str__(self) -> str:
         return f"{self.product.name} - {self.sku}"

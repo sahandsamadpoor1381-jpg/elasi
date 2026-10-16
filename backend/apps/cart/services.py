@@ -1,4 +1,3 @@
-from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 
 from apps.catalog.models import Product, ProductVariant
@@ -24,10 +23,7 @@ class CartServiceError(Exception):
 def get_variant_available(
     variant: ProductVariant,
 ) -> int:
-    try:
-        return variant.inventory.available
-    except ObjectDoesNotExist:
-        return 0
+    return variant.get_available()
 
 
 def validate_variant_for_cart(

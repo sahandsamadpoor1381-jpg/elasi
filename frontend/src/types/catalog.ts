@@ -24,6 +24,7 @@ export type ProductVariant = {
   weight_grams: string | null;
   price_rial: number;
   compare_at_price_rial: number | null;
+  is_active: boolean;
   available: number;
 };
 

@@ -4,7 +4,8 @@ export type OrderStatus =
   | "processing"
   | "shipped"
   | "delivered"
-  | "cancelled";
+  | "cancelled"
+  | "expired";
 
 
 export type ShippingMethod =
@@ -73,6 +74,14 @@ export type Order = {
   customer_note: string;
 
   items: OrderItem[];
+
+  reservation_expires_at:
+    | string
+    | null;
+
+  paid_at:
+    | string
+    | null;
 
   created_at: string;
 };

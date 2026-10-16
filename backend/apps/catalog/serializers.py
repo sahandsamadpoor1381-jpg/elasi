@@ -1,4 +1,3 @@
-from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
 
 from .models import (
@@ -53,14 +52,12 @@ class ProductVariantSerializer(serializers.ModelSerializer):
             "weight_grams",
             "price_rial",
             "compare_at_price_rial",
+            "is_active",
             "available",
         )
 
     def get_available(self, obj: ProductVariant) -> int:
-        try:
-            return obj.inventory.available
-        except ObjectDoesNotExist:
-            return 0
+        return obj.get_available()
 
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -76,10 +73,7 @@ class ProductSerializer(serializers.ModelSerializer):
         read_only=True,
     )
 
-    variants = ProductVariantSerializer(
-        many=True,
-        read_only=True,
-    )
+    variants = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
@@ -96,3 +90,10 @@ class ProductSerializer(serializers.ModelSerializer):
             "images",
             "variants",
         )
+
+    def get_variants(self, obj: Product):
+        if hasattr(obj, "active_variants"):
+            variants = obj.active_variants
+        else:
+            variants = obj.variants.filter(is_active=True)
+        return ProductVariantSerializer(variants, many=True).data
