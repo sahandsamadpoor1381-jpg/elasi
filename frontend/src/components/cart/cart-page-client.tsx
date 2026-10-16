@@ -227,7 +227,9 @@ export function CartPageClient() {
               text-center
             "
           >
-            <p className="text-body text-elasi-muted">
+            <h1 className="text-h3 text-elasi-green">سبد خرید</h1>
+
+            <p className="mt-3 text-body text-elasi-muted">
               در حال دریافت سبد خرید...
             </p>
           </div>

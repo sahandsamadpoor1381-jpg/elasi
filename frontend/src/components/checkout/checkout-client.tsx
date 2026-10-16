@@ -916,7 +916,11 @@ export function CheckoutClient() {
               SECURE CHECKOUT
             </p>
 
-            <p className="mt-4 text-body text-elasi-muted">
+            <h1 className="mt-4 text-h3 text-elasi-green">
+              تکمیل سفارش
+            </h1>
+
+            <p className="mt-3 text-body text-elasi-muted">
               در حال آماده‌سازی تکمیل سفارش...
             </p>
           </div>

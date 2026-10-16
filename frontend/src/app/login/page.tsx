@@ -255,6 +255,7 @@ export default async function LoginPage({
                   redirectTo={
                     redirectTo
                   }
+                headingLevel="h2"
                 />
               </div>
             </div>

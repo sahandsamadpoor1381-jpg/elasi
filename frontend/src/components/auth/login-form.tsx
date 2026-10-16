@@ -19,6 +19,13 @@ import { useAuth } from "@/components/auth/auth-provider";
 
 type LoginFormProps = {
   redirectTo?: string;
+  /**
+   * The login page renders this form twice (a desktop panel and a
+   * mobile panel, one of which is display-hidden at any viewport). Only
+   * one instance may own the page's h1, so the duplicate asks for h2;
+   * otherwise the document would expose two top-level headings.
+   */
+  headingLevel?: "h1" | "h2";
 };
 
 
@@ -153,7 +160,10 @@ function formatCountdown(
 
 export function LoginForm({
   redirectTo = "/account",
+  headingLevel = "h1",
 }: LoginFormProps) {
+  const Heading = headingLevel;
+
   const router = useRouter();
 
   const {
@@ -438,11 +448,18 @@ export function LoginForm({
     isLoading
   ) {
     return (
-      <div className="flex min-h-80 items-center justify-center">
+      <div className="flex min-h-80 flex-col items-center justify-center">
+        {/* The session check is what the server renders first, so this
+            state carries the page heading: without it the initial HTML
+            would have no h1 at all. */}
+        <Heading className="text-h2 text-elasi-green">
+          ورود به حساب
+        </Heading>
+
         <LoaderCircle
           size={26}
           strokeWidth={1.5}
-          className="animate-spin text-elasi-gold-text"
+          className="mt-6 animate-spin text-elasi-gold-text"
           aria-hidden="true"
         />
 
@@ -466,11 +483,11 @@ export function LoginForm({
           ELASI ACCOUNT
         </p>
 
-        <h1 className="text-h2 text-elasi-green">
+        <Heading className="text-h2 text-elasi-green">
           {step === "phone"
             ? "ورود به حساب"
             : "تأیید شماره موبایل"}
-        </h1>
+        </Heading>
 
         <p className="mt-3 max-w-md text-sm leading-7 text-elasi-muted">
           {step === "phone"
