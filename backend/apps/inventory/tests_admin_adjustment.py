@@ -389,4 +389,9 @@ class InventoryAdminConcurrencyTests(TransactionTestCase):
         )
 
         balance = self.assert_ledger_consistent()
-        self.assertEqual(balance.on_hand, 60)
+        # Both admins set an absolute physical count; the last one
+        # serialized wins (50 or 60 depending on scheduling). The
+        # hard invariant — each delta computed against the latest
+        # locked on_hand so the ledger sums to the balance — is
+        # asserted above and must hold in either order.
+        self.assertIn(balance.on_hand, (50, 60))
