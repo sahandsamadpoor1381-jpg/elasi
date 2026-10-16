@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.exceptions import NotFound
@@ -47,7 +48,10 @@ def get_request_cart(
     - An unbound guest cart is claimed by the first authenticated
       user that touches it. This preserves guest carts across the
       OTP login flow (the token lives in browser storage and the
-      cart becomes the user's cart on the next request).
+      cart becomes the user's cart on the next request). The claim
+      runs inside a transaction under a row lock and re-checks the
+      ownership state, so two users racing for the same token can
+      never both claim it or overwrite each other's ownership.
     - Anonymous requests against unbound carts keep the original
       capability-token behavior with no regression.
     """
@@ -74,14 +78,41 @@ def get_request_cart(
         return cart
 
     if request.user.is_authenticated:
-        cart.user = request.user
+        with transaction.atomic():
+            locked_cart = (
+                Cart.objects
+                .select_for_update()
+                .get(
+                    pk=cart.pk,
+                )
+            )
 
-        cart.save(
-            update_fields=(
-                "user",
-                "updated_at",
-            ),
-        )
+            if (
+                locked_cart.status
+                != Cart.Status.ACTIVE
+            ) or (
+                locked_cart.user_id is not None
+                and locked_cart.user_id != request.user.pk
+            ):
+                # A concurrent request claimed or converted the
+                # cart between our read and the lock. Ownership
+                # already belongs to someone else (or the cart is
+                # gone) — never overwrite it.
+                raise NotFound(
+                    "Cart was not found.",
+                )
+
+            if locked_cart.user_id is None:
+                locked_cart.user = request.user
+
+                locked_cart.save(
+                    update_fields=(
+                        "user",
+                        "updated_at",
+                    ),
+                )
+
+            return locked_cart
 
     return cart
 
