@@ -97,3 +97,105 @@ class ProductSerializer(serializers.ModelSerializer):
         else:
             variants = obj.variants.filter(is_active=True)
         return ProductVariantSerializer(variants, many=True).data
+
+
+class ProductSummarySerializer(ProductSerializer):
+    """Listing serializer: adds price range and availability aggregates.
+
+    Every value is computed from the already-prefetched active variants,
+    so a listing page stays a constant number of queries.
+    """
+
+    price_from_rial = serializers.SerializerMethodField()
+    price_to_rial = serializers.SerializerMethodField()
+    is_available = serializers.SerializerMethodField()
+    materials = serializers.SerializerMethodField()
+    primary_image = serializers.SerializerMethodField()
+
+    class Meta(ProductSerializer.Meta):
+        fields = (
+            *ProductSerializer.Meta.fields,
+            "price_from_rial",
+            "price_to_rial",
+            "is_available",
+            "materials",
+            "primary_image",
+        )
+
+    def get_active_variants(self, obj: Product) -> list[ProductVariant]:
+        if hasattr(obj, "active_variants"):
+            return list(obj.active_variants)
+
+        return list(
+            obj.variants.filter(is_active=True).prefetch_related(
+                "inventory",
+            ),
+        )
+
+    def get_price_from_rial(self, obj: Product) -> int | None:
+        prices = [
+            variant.price_rial
+            for variant in self.get_active_variants(obj)
+        ]
+
+        return min(prices) if prices else None
+
+    def get_price_to_rial(self, obj: Product) -> int | None:
+        prices = [
+            variant.price_rial
+            for variant in self.get_active_variants(obj)
+        ]
+
+        return max(prices) if prices else None
+
+    def get_is_available(self, obj: Product) -> bool:
+        return any(
+            variant.get_available() > 0
+            for variant in self.get_active_variants(obj)
+        )
+
+    def get_materials(self, obj: Product) -> list[str]:
+        return sorted(
+            {
+                variant.material
+                for variant in self.get_active_variants(obj)
+            },
+        )
+
+    def get_primary_image(self, obj: Product) -> dict | None:
+        images = list(obj.images.all())
+
+        if not images:
+            return None
+
+        primary = next(
+            (image for image in images if image.is_primary),
+            images[0],
+        )
+
+        return ProductImageSerializer(primary).data
+
+
+class CategorySummarySerializer(CategorySerializer):
+    """Category with its shoppable product count."""
+
+    product_count = serializers.IntegerField(read_only=True)
+
+    class Meta(CategorySerializer.Meta):
+        fields = (
+            *CategorySerializer.Meta.fields,
+            "product_count",
+        )
+
+
+class CollectionSummarySerializer(CollectionSerializer):
+    """Collection with its shoppable product count."""
+
+    product_count = serializers.IntegerField(read_only=True)
+
+    class Meta(CollectionSerializer.Meta):
+        fields = (
+            *CollectionSerializer.Meta.fields,
+            "description",
+            "product_count",
+        )

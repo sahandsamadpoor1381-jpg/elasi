@@ -41,3 +41,44 @@ export type Product = {
   images: ProductImage[];
   variants: ProductVariant[];
 };
+
+/**
+ * Listing shape returned by /products/ and /products/search/: the
+ * product plus server-computed price and availability aggregates, so a
+ * listing never has to derive them per row.
+ */
+export type ProductSummary = Product & {
+  price_from_rial: number | null;
+  price_to_rial: number | null;
+  is_available: boolean;
+  materials: ("gold" | "silver")[];
+  primary_image: ProductImage | null;
+};
+
+/** DRF page-number pagination envelope. */
+export type Paginated<T> = {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: T[];
+};
+
+export type CategorySummary = Category & {
+  product_count: number;
+};
+
+export type CollectionSummary = Collection & {
+  description: string;
+  product_count: number;
+};
+
+export type ProductGender = "women" | "men" | "unisex";
+
+export type ProductMaterial = "gold" | "silver";
+
+export type ProductOrdering =
+  | "newest"
+  | "price_asc"
+  | "price_desc"
+  | "name"
+  | "featured";

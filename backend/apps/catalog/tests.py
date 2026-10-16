@@ -167,6 +167,19 @@ class CatalogAPITests(APITestCase):
             status.HTTP_200_OK,
         )
 
+    def test_product_list_is_paginated_envelope(self):
+        response = self.client.get(
+            reverse("catalog:product-list"),
+        )
+
+        payload = response.json()
+
+        self.assertEqual(
+            set(payload),
+            {"count", "next", "previous", "results"},
+        )
+        self.assertEqual(payload["count"], 1)
+
     def test_product_list_contains_active_product(self):
         response = self.client.get(
             reverse("catalog:product-list"),
@@ -174,7 +187,7 @@ class CatalogAPITests(APITestCase):
 
         slugs = [
             product["slug"]
-            for product in response.json()
+            for product in response.json()["results"]
         ]
 
         self.assertIn(
@@ -189,7 +202,7 @@ class CatalogAPITests(APITestCase):
 
         slugs = [
             product["slug"]
-            for product in response.json()
+            for product in response.json()["results"]
         ]
 
         self.assertNotIn(

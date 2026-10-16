@@ -1,8 +1,16 @@
 import Image from "next/image";
 
+import Link from "next/link";
+
 import { ProductCard } from "@/components/storefront/product-card";
-import { getProducts } from "@/lib/catalog-api";
-import type { Product } from "@/types/catalog";
+import {
+  getCategories,
+  getProductPage,
+} from "@/lib/catalog-api";
+import type {
+  CategorySummary,
+  ProductSummary,
+} from "@/types/catalog";
 
 
 const categoryLabels: Record<string, string> = {
@@ -25,8 +33,8 @@ function getCategoryLabel(
 
 
 function getHeroProduct(
-  products: Product[],
-): Product | undefined {
+  products: ProductSummary[],
+): ProductSummary | undefined {
   return (
     products.find(
       (product) =>
@@ -42,7 +50,15 @@ function getHeroProduct(
 
 
 export default async function Home() {
-  const products = await getProducts();
+  const [productPage, categories] = await Promise.all([
+    getProductPage({
+      page_size: 24,
+      ordering: "featured",
+    }),
+    getCategories(),
+  ]);
+
+  const products = productPage.results;
 
   const heroProduct = getHeroProduct(products);
 
@@ -59,15 +75,6 @@ export default async function Home() {
     featuredProducts.length > 0
       ? featuredProducts.slice(0, 6)
       : products.slice(0, 6);
-
-  const categories = Array.from(
-    new Map(
-      products.map((product) => [
-        product.category.slug,
-        product.category,
-      ]),
-    ).values(),
-  );
 
   return (
     <main className="overflow-hidden bg-elasi-ivory">
@@ -98,19 +105,19 @@ export default async function Home() {
               </p>
 
               <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-                <a
-                  href="#collection"
+                <Link
+                  href="/shop"
                   className="elasi-button elasi-button--primary"
                 >
                   مشاهده مجموعه
-                </a>
+                </Link>
 
-                <a
-                  href="#brand-story"
+                <Link
+                  href="/about"
                   className="elasi-button elasi-button--secondary"
                 >
                   داستان ELASI
-                </a>
+                </Link>
               </div>
 
               {/* Hero Meta */}
@@ -186,12 +193,12 @@ export default async function Home() {
                           </p>
                         </div>
 
-                        <a
-                          href="#collection"
+                        <Link
+                          href={`/products/${heroProduct.slug}`}
                           className="shrink-0 text-sm font-medium text-elasi-green transition-colors hover:text-elasi-gold"
                         >
-                          مشاهده مجموعه
-                        </a>
+                          مشاهده محصول
+                        </Link>
                       </div>
                     </div>
                   </>
@@ -232,18 +239,22 @@ export default async function Home() {
               </div>
 
               <div className="flex flex-wrap gap-2">
-                {categories.map((category) => (
-                  <a
-                    key={category.slug}
-                    href="#collection"
-                    className="rounded-full border border-elasi-green/15 bg-elasi-ivory px-5 py-2.5 text-sm font-medium text-elasi-green transition-colors hover:border-elasi-gold hover:text-elasi-gold"
-                  >
-                    {getCategoryLabel(
-                      category.slug,
-                      category.name,
-                    )}
-                  </a>
-                ))}
+                {categories.map(
+                  (category: CategorySummary) => (
+                    <Link
+                      key={category.slug}
+                      href={`/shop?category=${encodeURIComponent(
+                        category.slug,
+                      )}`}
+                      className="rounded-full border border-elasi-green/15 bg-elasi-ivory px-5 py-2.5 text-sm font-medium text-elasi-green transition-colors hover:border-elasi-gold hover:text-elasi-gold"
+                    >
+                      {getCategoryLabel(
+                        category.slug,
+                        category.name,
+                      )}
+                    </Link>
+                  ),
+                )}
               </div>
             </div>
           </div>
@@ -368,12 +379,12 @@ export default async function Home() {
                 را پیدا کنید.
               </p>
 
-              <a
-                href="#collection"
+              <Link
+                href="/shop"
                 className="elasi-button elasi-button--primary mt-8"
               >
                 مشاهده محصولات
-              </a>
+              </Link>
             </div>
           </div>
         </div>

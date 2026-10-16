@@ -1,6 +1,8 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 
+from apps.core.text import normalize_fa
+
 
 class Category(models.Model):
     name = models.CharField(
@@ -120,6 +122,45 @@ class Product(models.Model):
     updated_at = models.DateTimeField(
         auto_now=True,
     )
+
+    # Normalized (Persian/Arabic letter and digit folded) copy of the
+    # searchable text. Search compares a normalized query against this
+    # column, so "ي"/"ی", "ك"/"ک", Persian/Arabic digits, ZWNJ and
+    # whitespace variants all match. Maintained in save(); never edited
+    # by hand.
+    search_text = models.TextField(
+        blank=True,
+        default="",
+        editable=False,
+    )
+
+    def build_search_text(self) -> str:
+        """Normalized text used by the storefront search."""
+
+        return normalize_fa(
+            " ".join(
+                part
+                for part in (
+                    self.name,
+                    self.short_description,
+                    self.description,
+                    self.slug,
+                )
+                if part
+            ),
+        )
+
+    def save(self, *args, **kwargs):
+        self.search_text = self.build_search_text()
+
+        update_fields = kwargs.get("update_fields")
+
+        if update_fields is not None:
+            kwargs["update_fields"] = list(
+                dict.fromkeys([*update_fields, "search_text"]),
+            )
+
+        super().save(*args, **kwargs)
 
     def __str__(self) -> str:
         return self.name
