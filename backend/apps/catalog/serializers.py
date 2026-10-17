@@ -102,8 +102,9 @@ class ProductSerializer(serializers.ModelSerializer):
 class ProductSummarySerializer(ProductSerializer):
     """Listing serializer: adds price range and availability aggregates.
 
-    Every value is computed from the already-prefetched active variants,
-    so a listing page stays a constant number of queries.
+    When variant filters are active, summary fields describe only the
+    matching variants; the legacy ``variants`` field still contains every
+    active variant. Both variant sets are prefetched to avoid N+1 queries.
     """
 
     price_from_rial = serializers.SerializerMethodField()
@@ -132,10 +133,18 @@ class ProductSummarySerializer(ProductSerializer):
             ),
         )
 
+    def get_summary_variants(self, obj: Product) -> list[ProductVariant]:
+        """Use filter-matching variants for the visible listing summary."""
+
+        if hasattr(obj, "matching_variants"):
+            return list(obj.matching_variants)
+
+        return self.get_active_variants(obj)
+
     def get_price_from_rial(self, obj: Product) -> int | None:
         prices = [
             variant.price_rial
-            for variant in self.get_active_variants(obj)
+            for variant in self.get_summary_variants(obj)
         ]
 
         return min(prices) if prices else None
@@ -143,7 +152,7 @@ class ProductSummarySerializer(ProductSerializer):
     def get_price_to_rial(self, obj: Product) -> int | None:
         prices = [
             variant.price_rial
-            for variant in self.get_active_variants(obj)
+            for variant in self.get_summary_variants(obj)
         ]
 
         return max(prices) if prices else None
@@ -151,14 +160,14 @@ class ProductSummarySerializer(ProductSerializer):
     def get_is_available(self, obj: Product) -> bool:
         return any(
             variant.get_available() > 0
-            for variant in self.get_active_variants(obj)
+            for variant in self.get_summary_variants(obj)
         )
 
     def get_materials(self, obj: Product) -> list[str]:
         return sorted(
             {
                 variant.material
-                for variant in self.get_active_variants(obj)
+                for variant in self.get_summary_variants(obj)
             },
         )
 

@@ -16,15 +16,17 @@ sorting, availability and pagination cannot drift between pages:
     attributes;
   * pagination: page / page_size with a bounded page size.
 
-Efficiency: one query for the page plus prefetch/select_related for
-category, collections, images and active variants - no N+1. Price and
-availability ordering use annotations rather than per-row Python.
+Efficiency: querysets are prefetch/select_related for category,
+collections, images, and variants. Variant-dependent filters share one
+eligible-variant set; filtered price sorting and summaries use that same
+set while the legacy variant payload remains unchanged.
 """
 
 from __future__ import annotations
 
 from django.db.models import (
     Count,
+    Exists,
     F,
     IntegerField,
     OuterRef,
@@ -138,6 +140,54 @@ def _parse_bool(value: str | None) -> bool:
     return normalize_fa(value) in {"1", "true", "yes", "on"}
 
 
+def _eligible_variant_queryset(params) -> QuerySet | None:
+    """Return active variants satisfying every supplied variant filter.
+
+    Keeping these predicates on one ProductVariant queryset is important:
+    chained reverse-relation filters can otherwise use different variant
+    rows for material, price bounds, and stock.
+    """
+
+    variants = ProductVariant.objects.filter(is_active=True)
+    has_variant_filter = False
+
+    material = params.get("material")
+
+    if material:
+        materials = {
+            MATERIAL_SYNONYMS.get(
+                normalize_fa(item),
+                normalize_fa(item),
+            )
+            for item in material.split(",")
+            if item.strip()
+        }
+
+        if materials:
+            variants = variants.filter(material__in=materials)
+            has_variant_filter = True
+
+    min_price = _parse_int(params.get("min_price"))
+
+    if min_price is not None:
+        variants = variants.filter(price_rial__gte=min_price)
+        has_variant_filter = True
+
+    max_price = _parse_int(params.get("max_price"))
+
+    if max_price is not None:
+        variants = variants.filter(price_rial__lte=max_price)
+        has_variant_filter = True
+
+    if _parse_bool(params.get("in_stock")):
+        variants = variants.filter(
+            inventory__on_hand__gt=F("inventory__reserved"),
+        )
+        has_variant_filter = True
+
+    return variants if has_variant_filter else None
+
+
 def _filter_gender(queryset: QuerySet, gender: str) -> QuerySet:
     """Apply storefront gender semantics.
 
@@ -170,19 +220,6 @@ class ProductQuerysetMixin:
     """Builds the filtered, ordered product queryset from query params."""
 
     def get_queryset(self) -> QuerySet:
-        queryset = (
-            Product.objects.filter(
-                status=Product.Status.ACTIVE,
-                category__is_active=True,
-            )
-            .select_related("category")
-            .prefetch_related(
-                "collections",
-                "images",
-                ACTIVE_VARIANTS,
-            )
-        )
-
         params = getattr(
             self.request,
             "query_params",
@@ -193,22 +230,63 @@ class ProductQuerysetMixin:
             # Plain WSGIRequest (e.g. a view instantiated directly).
             params = self.request.GET
 
-        return self.apply_filters(queryset, params)
+        eligible_variants = _eligible_variant_queryset(params)
+        prefetches = [
+            "collections",
+            "images",
+            ACTIVE_VARIANTS,
+        ]
+
+        if eligible_variants is not None:
+            # Keep the legacy `variants` representation as all active
+            # variants, while supplying a filter-scoped set for summaries.
+            prefetches.append(
+                Prefetch(
+                    "variants",
+                    queryset=eligible_variants.prefetch_related("inventory"),
+                    to_attr="matching_variants",
+                ),
+            )
+
+        queryset = (
+            Product.objects.filter(
+                status=Product.Status.ACTIVE,
+                category__is_active=True,
+            )
+            .select_related("category")
+            .prefetch_related(*prefetches)
+        )
+
+        return self.apply_filters(
+            queryset,
+            params,
+            eligible_variants,
+        )
 
     def apply_filters(
         self,
         queryset: QuerySet,
         params,
+        eligible_variants: QuerySet | None = None,
     ) -> QuerySet:
-        queryset = self.apply_catalog_filters(queryset, params)
+        queryset = self.apply_catalog_filters(
+            queryset,
+            params,
+            eligible_variants,
+        )
         queryset = self.apply_search(queryset, params)
 
-        return self.apply_ordering(queryset, params)
+        return self.apply_ordering(
+            queryset,
+            params,
+            eligible_variants,
+        )
 
     def apply_catalog_filters(
         self,
         queryset: QuerySet,
         params,
+        eligible_variants: QuerySet | None = None,
     ) -> QuerySet:
         category = params.get("category")
 
@@ -256,61 +334,23 @@ class ProductQuerysetMixin:
                     normalized_gender,
                 )
 
-        material = params.get("material")
-
-        if material:
-            materials = {
-                MATERIAL_SYNONYMS.get(
-                    normalize_fa(item),
-                    normalize_fa(item),
-                )
-                for item in material.split(",")
-                if item.strip()
-            }
-
-            if materials:
-                queryset = queryset.filter(
-                    variants__is_active=True,
-                    variants__material__in=materials,
-                )
-
-        min_price = _parse_int(params.get("min_price"))
-
-        if min_price is not None:
+        if eligible_variants is not None:
+            # EXISTS avoids duplicate products and ensures that every
+            # variant-dependent predicate applies to this same variant.
             queryset = queryset.filter(
-                variants__is_active=True,
-                variants__price_rial__gte=min_price,
-            )
-
-        max_price = _parse_int(params.get("max_price"))
-
-        if max_price is not None:
-            queryset = queryset.filter(
-                variants__is_active=True,
-                variants__price_rial__lte=max_price,
-            )
-
-        if _parse_bool(params.get("in_stock")):
-            queryset = queryset.filter(
-                variants__is_active=True,
-                variants__inventory__on_hand__gt=F(
-                    "variants__inventory__reserved",
+                Exists(
+                    eligible_variants.filter(
+                        product_id=OuterRef("pk"),
+                    ),
                 ),
             )
 
         if _parse_bool(params.get("is_featured")):
             queryset = queryset.filter(is_featured=True)
 
-        # Filters that traverse variants/collections can duplicate rows.
-        if any(
-            params.get(key)
-            for key in (
-                "collection",
-                "material",
-                "min_price",
-                "max_price",
-            )
-        ) or _parse_bool(params.get("in_stock")):
+        # The many-to-many collection join can duplicate product rows.
+        # Variant filters use EXISTS and therefore need no DISTINCT.
+        if params.get("collection"):
             queryset = queryset.distinct()
 
         return queryset
@@ -368,18 +408,22 @@ class ProductQuerysetMixin:
         self,
         queryset: QuerySet,
         params,
+        eligible_variants: QuerySet | None = None,
     ) -> QuerySet:
         ordering = normalize_fa(
             params.get("ordering") or "",
         )
 
-        # OuterRef correlates the subquery with the product row being
-        # ordered; a plain F() here would resolve inside the subquery and
-        # return the same (globally cheapest) price for every product.
+        # Order by the cheapest variant that satisfies the active variant
+        # filters. Without those filters this is the cheapest active variant.
+        price_variants = (
+            eligible_variants
+            if eligible_variants is not None
+            else ProductVariant.objects.filter(is_active=True)
+        )
         price_subquery = (
-            ProductVariant.objects.filter(
+            price_variants.filter(
                 product_id=OuterRef("pk"),
-                is_active=True,
             )
             .order_by("price_rial")
             .values("price_rial")[:1]
@@ -390,9 +434,8 @@ class ProductQuerysetMixin:
             "price_desc",
             "price",
         }:
-            # NULL means "no active variant has a price" (nothing is
-            # purchasable); those products sort last instead of being
-            # presented as the cheapest ones.
+            # NULL means no active variant satisfies the selected filters;
+            # such products sort last instead of looking cheapest.
             queryset = queryset.annotate(
                 ordering_price=Subquery(
                     price_subquery,
