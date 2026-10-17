@@ -1,92 +1,117 @@
 /**
- * API base URL resolution.
+ * API URL resolution for the same-origin Django proxy.
  *
- * Cookie topology (the reason this module exists):
+ * Browser requests always use the relative `/api/v1` path. `src/proxy.ts`
+ * forwards those requests to Django, keeping session and CSRF cookies
+ * first-party and preserving Django's CSRF checks. An old absolute
+ * `NEXT_PUBLIC_API_BASE_URL` would bypass that proxy, so it is rejected
+ * instead of being silently honored.
  *
- * Django issues the session and CSRF cookies with `SameSite=Lax` and
- * no `Secure` flag, which is correct for a same-site storefront. A
- * browser only attaches those cookies when it considers the request
- * "same site" - and `http://localhost:3000` vs `http://127.0.0.1:8000`
- * are *cross-site* even though both are "local". In that topology the
- * CSRF cookie is never sent back and Django answers every OTP request
- * with `403 CSRF Failed: CSRF cookie not set.`
- *
- * So in the browser we default to a **relative** base (`/api/v1`) that
- * Next.js proxies to Django (`next.config.ts` rewrites). Every request
- * is then same-origin, first-party cookies always travel, no CORS
- * negotiation is needed, and CSRF protection stays fully enforced.
- *
- * Server-side rendering (RSC / route handlers) cannot use a relative
- * URL, so it talks to Django directly through `INTERNAL_API_BASE_URL`
- * (never exposed to the browser bundle).
+ * React Server Components and the proxy use `INTERNAL_API_ORIGIN`, a
+ * server-only origin (scheme + host + optional port, without `/api/v1`).
  */
 
 const DEFAULT_CLIENT_BASE_URL = "/api/v1";
+const DEFAULT_INTERNAL_API_ORIGIN = "http://127.0.0.1:8000";
 
-const DEFAULT_INTERNAL_BASE_URL = "http://127.0.0.1:8000/api/v1";
 
-
-function trimTrailingSlash(value: string): string {
+function trimTrailingSlashes(value: string): string {
   return value.replace(/\/+$/, "");
 }
 
 
-/**
- * Set `NEXT_PUBLIC_API_BASE_URL` only when the API must be reached on
- * another origin (and then make sure the hostnames match the site, and
- * that CORS_ALLOWED_ORIGINS / CSRF_TRUSTED_ORIGINS cover the site
- * origin). Leaving it unset is the recommended, cookie-safe default.
- */
-const PUBLIC_API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL
-    ? trimTrailingSlash(
-        process.env.NEXT_PUBLIC_API_BASE_URL,
-      )
-    : null;
+const legacyPublicApiBaseUrl =
+  process.env.NEXT_PUBLIC_API_BASE_URL?.trim();
+
+if (
+  legacyPublicApiBaseUrl &&
+  trimTrailingSlashes(legacyPublicApiBaseUrl) !==
+    DEFAULT_CLIENT_BASE_URL
+) {
+  throw new Error(
+    "NEXT_PUBLIC_API_BASE_URL no longer supports absolute API URLs. " +
+      "Remove it from frontend/.env.local; browser API calls must use " +
+      "the same-origin /api/v1 proxy. Configure Django with " +
+      "INTERNAL_API_ORIGIN instead.",
+  );
+}
 
 
-/** Server-only: used by RSC fetches and by the Next.js rewrite target. */
-const INTERNAL_API_BASE_URL = trimTrailingSlash(
-  process.env.INTERNAL_API_BASE_URL ??
-    DEFAULT_INTERNAL_BASE_URL,
-);
+const legacyInternalApiBaseUrl =
+  process.env.INTERNAL_API_BASE_URL?.trim();
+
+if (legacyInternalApiBaseUrl) {
+  throw new Error(
+    "INTERNAL_API_BASE_URL is deprecated. Rename it to " +
+      "INTERNAL_API_ORIGIN and remove its API path (for example /api/v1).",
+  );
+}
 
 
-/** Absolute origin of the Django server (used for /media and rewrites). */
+/** Absolute Django origin shared by the proxy and server-side fetches. */
 export function internalApiOrigin(): string {
-  return INTERNAL_API_BASE_URL.replace(/\/api\/v1$/, "");
+  const configuredOrigin =
+    process.env.INTERNAL_API_ORIGIN?.trim() ||
+    DEFAULT_INTERNAL_API_ORIGIN;
+
+  let parsedOrigin: URL;
+
+  try {
+    parsedOrigin = new URL(configuredOrigin);
+  } catch {
+    throw new Error(
+      "INTERNAL_API_ORIGIN must be an absolute HTTP(S) origin, " +
+        "for example http://127.0.0.1:8000.",
+    );
+  }
+
+  if (
+    !["http:", "https:"].includes(parsedOrigin.protocol) ||
+    parsedOrigin.pathname !== "/" ||
+    parsedOrigin.search !== "" ||
+    parsedOrigin.hash !== "" ||
+    parsedOrigin.username !== "" ||
+    parsedOrigin.password !== ""
+  ) {
+    throw new Error(
+      "INTERNAL_API_ORIGIN must contain only the Django origin " +
+        "(scheme, host, and optional port), without credentials, " +
+        "a path, query, or fragment.",
+    );
+  }
+
+  return parsedOrigin.origin;
+}
+
+
+/** Server-only API base URL used by RSC fetches. */
+function internalApiBaseUrl(): string {
+  return `${internalApiOrigin()}/api/v1`;
 }
 
 
 /**
  * Base URL for the current runtime.
- * - browser  → relative, same-origin (proxied by Next.js)
- * - server   → absolute, direct to Django
+ * - browser: relative, same-origin, and always sent through src/proxy.ts
+ * - server: absolute, direct to Django using INTERNAL_API_ORIGIN
  */
 export function apiBaseUrl(): string {
   if (typeof window === "undefined") {
-    return INTERNAL_API_BASE_URL;
+    return internalApiBaseUrl();
   }
 
-  return PUBLIC_API_BASE_URL ?? DEFAULT_CLIENT_BASE_URL;
+  return DEFAULT_CLIENT_BASE_URL;
 }
 
 
 /**
- * Build a request URL from a canonical, slash-terminated API path
- * (the shape Django's URLconf uses, e.g. `/auth/csrf/`).
- *
- * - same-origin proxy mode (default): the trailing slash is dropped,
- *   because Next normalizes slash-less URLs and `src/proxy.ts` restores
- *   the slash when forwarding to Django. Requesting the slash form from
- *   the browser would be answered with a 308 and, for POSTs, could end
- *   up downgraded to a GET by Django's APPEND_SLASH 301.
- * - absolute override mode: the browser talks to Django directly, so
- *   the canonical slash-terminated path is required.
+ * Build a request URL from a canonical, slash-terminated Django API path
+ * (for example `/auth/csrf/`). In proxy mode the browser path is
+ * slash-less because Next normalizes slash-terminated URLs before proxy
+ * execution; src/proxy.ts restores Django's canonical trailing slash.
  */
 export function apiUrl(path: string): string {
   const base = apiBaseUrl();
-
   const normalized = path.startsWith("/")
     ? path
     : `/${path}`;

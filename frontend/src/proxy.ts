@@ -19,8 +19,9 @@
  * normalizes trailing slashes on rewrite sources: `/api/v1/auth/csrf/`
  * was answered with `308 → /api/v1/auth/csrf`, after which Django's
  * APPEND_SLASH `301` would make a browser re-issue POSTs as GET and
- * break OTP request/verify, cart writes and checkout. Here the exact
- * request path is forwarded untouched.
+ * break OTP request/verify, cart writes and checkout. This proxy
+ * restores Django's canonical slash after Next's normalization while
+ * preserving the request method and body.
  */
 
 import {
@@ -28,15 +29,13 @@ import {
   type NextRequest,
 } from "next/server";
 
+import { internalApiOrigin } from "./lib/api-config";
 
-const INTERNAL_API_ORIGIN = (
-  process.env.INTERNAL_API_ORIGIN ??
-    process.env.INTERNAL_API_BASE_URL?.replace(
-      /\/api\/v1\/?$/,
-      "",
-    ) ??
-    "http://127.0.0.1:8000"
-).replace(/\/+$/, "");
+
+// One validated origin is shared with server-side data fetches. Old
+// INTERNAL_API_BASE_URL values fail loudly instead of silently routing
+// SSR and browser-proxied requests to different Django instances.
+const INTERNAL_API_ORIGIN = internalApiOrigin();
 
 
 export function proxy(request: NextRequest) {
