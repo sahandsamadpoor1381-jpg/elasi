@@ -4,7 +4,8 @@
 - **Milestone:** Stage 1, catalog discovery and filtering
 - **Branch:** `arena/5630017a-elasi`
 - **Baseline commit:** `18425e6cc54fac4f1491057240f8c0f9434bbac1` (HEAD before this catalog milestone)
-- **Working tree:** Catalog implementation, tests and delivery evidence are being prepared on this branch; rendered acceptance is not claimed.
+- **Implementation commit:** `a28f92a4bf84c998ab963fd8f5cb858e9bd0ade0` on the active branch
+- **Status:** Catalog implementation and QA evidence are committed; rendered acceptance is not claimed.
 - **Visual evidence:** No screenshots were present. Findings below are from source inspection and automated non-browser checks; they are not pixel-level or browser acceptance.
 
 ## Redesign Skill workflow

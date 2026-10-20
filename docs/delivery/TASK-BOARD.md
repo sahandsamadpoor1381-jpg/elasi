@@ -2,6 +2,7 @@
 
 - **Updated:** 2026-10-20
 - **Branch:** `arena/5630017a-elasi`
+- **Catalog implementation commit:** `a28f92a4bf84c998ab963fd8f5cb858e9bd0ade0`
 
 | ID | Priority | Work item | Status | Acceptance / next action |
 | --- | --- | --- | --- | --- |

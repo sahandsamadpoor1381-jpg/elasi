@@ -4,6 +4,7 @@
 - **Target deadline:** 2026-10-27
 - **Current stage:** Stage 1 storefront catalog milestone
 - **Active branch:** `arena/5630017a-elasi`
+- **Catalog implementation commit:** `a28f92a4bf84c998ab963fd8f5cb858e9bd0ade0`
 
 This is a living release-gate document, not evidence that ELASI v1 has shipped. No production deployment, live payment, SMS, production data change, or customer charge has occurred in this milestone.
 
