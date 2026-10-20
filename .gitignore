@@ -36,6 +36,11 @@ frontend/dist/
 coverage/
 frontend/coverage/
 
+# Playwright artifacts and local authentication state
+frontend/playwright-report/
+frontend/test-results/
+frontend/e2e/.auth/
+
 *.tsbuildinfo
 
 npm-debug.log*

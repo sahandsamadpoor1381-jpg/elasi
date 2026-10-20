@@ -579,7 +579,7 @@ export function LoginForm({
                 outline-none
                 transition
                 placeholder:text-elasi-muted/50
-                focus:border-elasi-gold
+                focus:border-elasi-gold-text
                 focus:ring-2
                 focus:ring-elasi-gold/10
                 disabled:cursor-not-allowed
@@ -744,7 +744,7 @@ export function LoginForm({
                 outline-none
                 transition
                 placeholder:text-elasi-muted/35
-                focus:border-elasi-gold
+                focus:border-elasi-gold-text
                 focus:ring-2
                 focus:ring-elasi-gold/10
                 disabled:cursor-not-allowed

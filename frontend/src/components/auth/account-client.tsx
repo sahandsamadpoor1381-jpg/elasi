@@ -406,7 +406,7 @@ export function AccountClient() {
               className="flex items-start justify-between"
             >
               <div>
-                <p className="text-[10px] font-medium tracking-[0.32em] text-elasi-gold-text">
+                <p className="text-[10px] font-medium tracking-[0.32em] text-elasi-gold">
                   ELASI
                 </p>
 
@@ -472,7 +472,7 @@ export function AccountClient() {
                     text-[9px]
                     font-medium
                     tracking-[0.26em]
-                    text-elasi-gold-text
+                    text-elasi-gold
                   "
                 >
                   PROFILE HOLDER
@@ -549,7 +549,7 @@ export function AccountClient() {
                 <ShieldCheck
                   size={23}
                   strokeWidth={1.3}
-                  className="text-elasi-gold-text"
+                  className="text-elasi-gold"
                   aria-hidden="true"
                 />
               </div>
@@ -635,7 +635,7 @@ export function AccountClient() {
                   text-elasi-green
                   transition-all
                   duration-300
-                  group-hover:border-elasi-gold/45
+                  group-hover:border-elasi-gold-text
                   group-hover:text-elasi-gold-text
                   sm:row-span-1
                 "
@@ -697,7 +697,7 @@ export function AccountClient() {
                   text-elasi-green
                   transition-all
                   duration-300
-                  group-hover:border-elasi-gold/45
+                  group-hover:border-elasi-gold-text
                   group-hover:text-elasi-gold-text
                   sm:row-span-1
                 "
@@ -790,7 +790,7 @@ export function AccountClient() {
                   text-elasi-green
                   transition-all
                   duration-300
-                  group-hover:border-elasi-gold/45
+                  group-hover:border-elasi-gold-text
                   group-hover:text-elasi-gold-text
                   sm:row-span-1
                 "

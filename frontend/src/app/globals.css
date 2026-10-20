@@ -79,11 +79,16 @@
   /* Layout */
   --elasi-container: 1200px;
   --elasi-page-padding: 24px;
+  --catalog-filter-width: 16rem;
 
   /* Product grid: one definition shared by the listing and its
      skeleton, so the loading state always matches the loaded layout. */
   --grid-product-min: 240px;
   --card-max-width: 360px;
+
+  /* Mobile filter dialog stays within the visible viewport, including
+     on short landscape screens and when browser controls are present. */
+  --filter-panel-max-height: 92dvh;
 
   /* Spacing */
   --space-1: 4px;
@@ -439,7 +444,7 @@ p {
 }
 
 .elasi-link:hover {
-  color: var(--elasi-gold);
+  color: var(--elasi-gold-text);
 }
 
 .elasi-button {
@@ -478,6 +483,7 @@ p {
 
 .elasi-button--primary:hover {
   background: var(--elasi-gold);
+  color: var(--elasi-green);
 }
 
 .elasi-button--secondary {
@@ -487,8 +493,8 @@ p {
 }
 
 .elasi-button--secondary:hover {
-  border-color: var(--elasi-gold);
-  color: var(--elasi-gold);
+  border-color: var(--elasi-gold-text);
+  color: var(--elasi-gold-text);
 }
 
 /* ---------------------------------------------------------

@@ -31,7 +31,7 @@ function ArticleCard({ article }: { article: ArticleSummary }) {
   const cover = mediaPath(article.cover_image);
 
   return (
-    <article className="flex h-full flex-col overflow-hidden rounded-card border border-elasi-green/10 bg-white/60 transition-colors hover:border-elasi-gold/40">
+    <article className="flex h-full flex-col overflow-hidden rounded-card border border-elasi-green/10 bg-white/60 transition-colors hover:border-elasi-gold-text">
       <Link
         href={`/blog/${article.slug}`}
         className="flex h-full flex-col"

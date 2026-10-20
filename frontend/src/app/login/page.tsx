@@ -159,7 +159,7 @@ export default async function LoginPage({
               "
             >
               <div>
-                <p className="text-[10px] font-medium tracking-[0.3em] text-elasi-gold-text">
+                <p className="text-[10px] font-medium tracking-[0.3em] text-elasi-gold">
                   ELASI
                 </p>
 
@@ -188,7 +188,7 @@ export default async function LoginPage({
                 sm:max-w-[430px]
               "
             >
-              <p className="text-[10px] font-medium tracking-[0.16em] text-elasi-gold-text">
+              <p className="text-[10px] font-medium tracking-[0.16em] text-elasi-gold">
                 فضای شخصی ELASI
               </p>
 
@@ -393,7 +393,7 @@ export default async function LoginPage({
                 className="flex items-start justify-between"
               >
                 <div>
-                  <p className="text-[10px] font-medium tracking-[0.32em] text-elasi-gold-text">
+                  <p className="text-[10px] font-medium tracking-[0.32em] text-elasi-gold">
                     ELASI
                   </p>
 
@@ -411,7 +411,7 @@ export default async function LoginPage({
               {/* Statement */}
 
               <div className="max-w-[560px] pb-16 xl:pb-20">
-                <p className="text-[11px] font-medium tracking-[0.18em] text-elasi-gold-text">
+                <p className="text-[11px] font-medium tracking-[0.18em] text-elasi-gold">
                   حساب شما،
                 </p>
 

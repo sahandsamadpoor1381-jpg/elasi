@@ -12,6 +12,12 @@ type ProductGalleryProps = {
 };
 
 
+const PRODUCT_GALLERY_SIZES =
+  "(max-width: 1024px) 100vw, 52vw"; // ds-allow-hardcode: Next Image sizes descriptors require concrete CSS source sizes.
+const PRODUCT_THUMBNAIL_SIZES =
+  "120px"; // ds-allow-hardcode: fixed thumbnail source-size hint for Next Image.
+
+
 export function ProductGallery({
   productName,
   images,
@@ -40,7 +46,7 @@ export function ProductGallery({
 
   if (!selectedImage) {
     return (
-      <div className="flex aspect-[4/5] items-center justify-center rounded-[32px] border border-elasi-green/10 bg-white px-8 text-center">
+      <div className="flex aspect-[4/5] items-center justify-center rounded-card border border-elasi-green/10 bg-white px-8 text-center">
         <p className="text-sm text-elasi-muted">
           تصویری برای این محصول ثبت نشده است.
         </p>
@@ -50,7 +56,7 @@ export function ProductGallery({
 
   return (
     <div>
-      <div className="relative aspect-[4/5] overflow-hidden rounded-[32px] bg-white">
+      <div className="relative aspect-[4/5] overflow-hidden rounded-card bg-white">
         <Image
           src={selectedImage.image}
           alt={
@@ -59,7 +65,7 @@ export function ProductGallery({
           }
           fill
           priority
-          sizes="(max-width: 1024px) 100vw, 52vw"
+          sizes={PRODUCT_GALLERY_SIZES}
           className="object-cover"
         />
       </div>
@@ -85,17 +91,17 @@ export function ProductGallery({
                     index + 1
                   } از ${productName}`}
                   aria-pressed={isSelected}
-                  className={`relative aspect-square overflow-hidden rounded-[16px] border bg-white transition ${
+                  className={`relative aspect-square overflow-hidden rounded-md border bg-white transition ${
                     isSelected
-                      ? "border-elasi-gold"
-                      : "border-elasi-green/10 hover:border-elasi-green/30"
+                      ? "border-elasi-gold-text"
+                      : "border-elasi-border-strong hover:border-elasi-gold-text"
                   }`}
                 >
                   <Image
                     src={image.image}
                     alt=""
                     fill
-                    sizes="120px"
+                    sizes={PRODUCT_THUMBNAIL_SIZES}
                     className="object-cover"
                   />
                 </button>

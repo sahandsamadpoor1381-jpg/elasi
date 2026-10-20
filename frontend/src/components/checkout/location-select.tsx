@@ -265,10 +265,10 @@ export function LocationSelect({
 
           disabled
             ? "cursor-not-allowed opacity-45"
-            : "cursor-pointer hover:border-elasi-gold/50 hover:bg-white",
+            : "cursor-pointer hover:border-elasi-gold-text hover:bg-white",
 
           isOpen
-            ? "border-elasi-gold bg-white ring-4 ring-elasi-gold/10"
+            ? "border-elasi-gold-text bg-white ring-4 ring-elasi-gold/10"
             : "",
         ].join(" ")}
       >
@@ -359,7 +359,7 @@ export function LocationSelect({
                     px-3
                     transition-all
                     duration-200
-                    focus-within:border-elasi-gold
+                    focus-within:border-elasi-gold-text
                     focus-within:bg-white
                     focus-within:ring-4
                     focus-within:ring-elasi-gold/10
@@ -479,7 +479,7 @@ export function LocationSelect({
                           "duration-150",
 
                           isSelected
-                            ? "border-elasi-gold/25 bg-elasi-gold/10 font-medium text-elasi-green"
+                            ? "border-elasi-gold-text bg-elasi-gold/10 font-medium text-elasi-green"
                             : "border-transparent bg-transparent text-elasi-text hover:bg-elasi-ivory hover:text-elasi-green",
                         ].join(
                           " ",
@@ -506,7 +506,7 @@ export function LocationSelect({
                             aria-hidden="true"
                             style={{
                               color:
-                                "var(--elasi-gold)",
+                                "var(--elasi-gold-text)",
                             }}
                           />
                         ) : null}

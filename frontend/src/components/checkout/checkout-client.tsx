@@ -953,7 +953,7 @@ export function CheckoutClient() {
         <div className="elasi-container">
           <div className="mx-auto max-w-3xl overflow-hidden rounded-[36px] border border-elasi-green/10 bg-white shadow-[0_24px_70px_rgba(21,42,36,0.06)]">
             <div className="bg-elasi-green px-6 py-10 text-center sm:px-10 sm:py-14">
-              <div className="mx-auto flex size-14 items-center justify-center rounded-full border border-elasi-gold/40 bg-white/5 text-elasi-gold-text">
+              <div className="mx-auto flex size-14 items-center justify-center rounded-full border border-elasi-gold/40 bg-white/5 text-elasi-gold">
                 <Check
                   size={26}
                   strokeWidth={1.6}
@@ -962,7 +962,7 @@ export function CheckoutClient() {
               </div>
 
 
-              <p className="mt-6 text-label tracking-[0.2em] text-elasi-gold-text">
+              <p className="mt-6 text-label tracking-[0.2em] text-elasi-gold">
                 ORDER CREATED
               </p>
 
@@ -1141,7 +1141,7 @@ export function CheckoutClient() {
           <div className="space-y-6">
             <section className="rounded-[30px] border border-elasi-green/10 bg-white p-5 sm:p-7 lg:p-8">
               <div className="flex items-start gap-4 border-b border-elasi-green/10 pb-6">
-                <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-elasi-green text-elasi-gold-text">
+                <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-elasi-green text-elasi-gold">
                   <MapPin
                     size={20}
                     strokeWidth={1.6}
@@ -1195,7 +1195,7 @@ export function CheckoutClient() {
                         ? "recipient_name-error"
                         : undefined
                     }
-                    className="w-full rounded-[16px] border border-elasi-border-strong bg-elasi-ivory/50 px-4 py-3.5 text-sm text-elasi-text outline-none transition focus:border-elasi-gold focus:bg-white"
+                    className="w-full rounded-[16px] border border-elasi-border-strong bg-elasi-ivory/50 px-4 py-3.5 text-sm text-elasi-text outline-none transition focus:border-elasi-gold-text focus:bg-white"
                   />
 
                   {fieldErrors.recipient_name ? (
@@ -1243,7 +1243,7 @@ export function CheckoutClient() {
                         ? "phone_number-error"
                         : undefined
                     }
-                    className="w-full rounded-[16px] border border-elasi-border-strong bg-elasi-ivory/50 px-4 py-3.5 text-left text-sm text-elasi-text outline-none transition focus:border-elasi-gold focus:bg-white"
+                    className="w-full rounded-[16px] border border-elasi-border-strong bg-elasi-ivory/50 px-4 py-3.5 text-left text-sm text-elasi-text outline-none transition focus:border-elasi-gold-text focus:bg-white"
                   />
 
                   <p className="mt-2 text-xs leading-6 text-elasi-muted">
@@ -1343,7 +1343,7 @@ export function CheckoutClient() {
                         ? "postal_code-error"
                         : undefined
                     }
-                    className="w-full rounded-[16px] border border-elasi-border-strong bg-elasi-ivory/50 px-4 py-3.5 text-left text-sm text-elasi-text outline-none transition focus:border-elasi-gold focus:bg-white"
+                    className="w-full rounded-[16px] border border-elasi-border-strong bg-elasi-ivory/50 px-4 py-3.5 text-left text-sm text-elasi-text outline-none transition focus:border-elasi-gold-text focus:bg-white"
                   />
 
                   {fieldErrors.postal_code ? (
@@ -1402,7 +1402,7 @@ export function CheckoutClient() {
                       text-elasi-text
                       outline-none
                       transition
-                      focus:border-elasi-gold
+                      focus:border-elasi-gold-text
                       focus:bg-white
                     "
                   />
@@ -1435,7 +1435,7 @@ export function CheckoutClient() {
                     onChange={
                       handleInputChange
                     }
-                    className="w-full rounded-[16px] border border-elasi-border-strong bg-elasi-ivory/50 px-4 py-3.5 text-sm text-elasi-text outline-none transition focus:border-elasi-gold focus:bg-white"
+                    className="w-full rounded-[16px] border border-elasi-border-strong bg-elasi-ivory/50 px-4 py-3.5 text-sm text-elasi-text outline-none transition focus:border-elasi-gold-text focus:bg-white"
                   />
                 </div>
 
@@ -1455,7 +1455,7 @@ export function CheckoutClient() {
                     onChange={
                       handleInputChange
                     }
-                    className="w-full rounded-[16px] border border-elasi-border-strong bg-elasi-ivory/50 px-4 py-3.5 text-sm text-elasi-text outline-none transition focus:border-elasi-gold focus:bg-white"
+                    className="w-full rounded-[16px] border border-elasi-border-strong bg-elasi-ivory/50 px-4 py-3.5 text-sm text-elasi-text outline-none transition focus:border-elasi-gold-text focus:bg-white"
                   />
                 </div>
 
@@ -1491,7 +1491,7 @@ export function CheckoutClient() {
                       outline-none
                       transition
                       placeholder:text-elasi-muted/60
-                      focus:border-elasi-gold
+                      focus:border-elasi-gold-text
                       focus:bg-white
                     "
                   />

@@ -246,7 +246,7 @@ export default async function Home() {
                       href={`/shop?category=${encodeURIComponent(
                         category.slug,
                       )}`}
-                      className="rounded-full border border-elasi-border-strong bg-elasi-ivory px-5 py-2.5 text-sm font-medium text-elasi-green transition-colors hover:border-elasi-gold hover:text-elasi-gold-text"
+                      className="rounded-full border border-elasi-border-strong bg-elasi-ivory px-5 py-2.5 text-sm font-medium text-elasi-green transition-colors hover:border-elasi-gold-text hover:text-elasi-gold-text"
                     >
                       {getCategoryLabel(
                         category.slug,
@@ -322,7 +322,7 @@ export default async function Home() {
         <div className="elasi-container py-20 sm:py-24 lg:py-28">
           <div className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
             <div>
-              <p className="text-label tracking-[0.2em] text-elasi-gold-text">
+              <p className="text-label tracking-[0.2em] text-elasi-gold">
                 THE ELASI STORY
               </p>
 

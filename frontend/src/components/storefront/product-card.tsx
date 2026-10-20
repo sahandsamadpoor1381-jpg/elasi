@@ -18,6 +18,12 @@ function formatToman(priceRial: number): string {
 }
 
 
+// Next Image's `sizes` descriptor needs concrete CSS lengths, so these values
+// deliberately mirror the responsive breakpoints, page padding and card width.
+const PRODUCT_IMAGE_SIZES =
+  "(max-width: 640px) calc(100vw - 24px), (max-width: 1024px) 45vw, 360px"; // ds-allow-hardcode: required concrete image source-size values.
+
+
 function getCategoryLabel(slug: string, fallback: string): string {
   const labels: Record<string, string> = {
     rings: "انگشتر",
@@ -54,8 +60,8 @@ export function ProductCard({ product }: ProductCardProps) {
     priceTo > priceFrom;
 
   return (
-    <article className="group relative w-full max-w-[360px]">
-      <div className="absolute left-4 top-4 z-10">
+    <article className="elasi-product-card group relative">
+      <div className="absolute start-4 top-4 z-10">
         <WishlistButton
           productSlug={product.slug}
           productName={product.name}
@@ -72,7 +78,7 @@ export function ProductCard({ product }: ProductCardProps) {
               src={primaryImage.image}
               alt={primaryImage.alt_text || product.name}
               fill
-              sizes="(max-width: 640px) calc(100vw - 24px), (max-width: 1024px) 45vw, 360px"
+              sizes={PRODUCT_IMAGE_SIZES}
               className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.025]"
             />
           ) : (

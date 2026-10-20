@@ -296,10 +296,10 @@ export function ProductPurchasePanel({
                         variant.sku,
                       )
                     }
-                    className={`flex min-h-16 items-center justify-between gap-5 rounded-[18px] border px-5 py-4 text-right transition ${
+                    className={`flex min-h-16 items-center justify-between gap-5 rounded-lg border px-5 py-4 text-right transition ${
                       isSelected
-                        ? "border-elasi-gold bg-white"
-                        : "border-elasi-green/10 bg-white/35 hover:border-elasi-green/25 hover:bg-white/60"
+                        ? "border-elasi-gold-text bg-white"
+                        : "border-elasi-border-strong bg-white/35 hover:border-elasi-gold-text hover:bg-white/60"
                     }`}
                   >
                     <div>
@@ -332,7 +332,7 @@ export function ProductPurchasePanel({
 
       {/* Custom size */}
       {product.allow_custom_size ? (
-        <div className="mt-9 rounded-[20px] border border-elasi-gold/25 bg-white/40 p-5">
+        <div className="mt-9 rounded-lg border border-elasi-gold/25 bg-white/40 p-5">
           <div className="flex items-start gap-3">
             <span
               aria-hidden="true"

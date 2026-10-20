@@ -125,7 +125,7 @@ export default async function AboutPage() {
                     href={`/shop?category=${encodeURIComponent(
                       category.slug,
                     )}`}
-                    className="flex items-center gap-2 rounded-full border border-elasi-border-strong bg-elasi-ivory px-5 py-2.5 text-sm font-medium text-elasi-green transition-colors hover:border-elasi-gold hover:text-elasi-gold-text"
+                    className="flex items-center gap-2 rounded-full border border-elasi-border-strong bg-elasi-ivory px-5 py-2.5 text-sm font-medium text-elasi-green transition-colors hover:border-elasi-gold-text hover:text-elasi-gold-text"
                   >
                     {category.name}
 
