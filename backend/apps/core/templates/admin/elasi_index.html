@@ -1,0 +1,43 @@
+{% extends "admin/index.html" %}
+{% block content %}
+  <section class="elasi-dashboard" aria-label="شاخص‌های عملیاتی فروشگاه">
+    <div class="elasi-dashboard__intro">
+      <p class="elasi-dashboard__eyebrow">ELASI / OPERATIONS</p>
+      <h2>نمای کلی فروشگاه</h2>
+      <p>اطلاعات این بخش از وضعیت واقعی سفارش‌ها، محصولات و موجودی محاسبه می‌شود.</p>
+    </div>
+    {% if elasi_metrics %}
+      <div class="elasi-metrics">
+        {% for metric in elasi_metrics %}
+          <a class="elasi-metric" href="{{ metric.url }}">
+            <span class="elasi-metric__label">{{ metric.label }}</span>
+            <strong class="elasi-metric__value">{{ metric.value }}</strong>
+            <span class="elasi-metric__action">مشاهده جزئیات ←</span>
+          </a>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="elasi-dashboard__restricted">شاخص‌های عملیاتی فقط برای کارکنانی نمایش داده می‌شوند که مجوز مشاهده اطلاعات مربوط را دارند.</p>
+    {% endif %}
+    {% if elasi_recent_orders %}
+      <div class="elasi-recent">
+        <h3>آخرین سفارش‌ها</h3>
+        <div class="elasi-recent__scroll">
+          <table>
+            <thead><tr><th scope="col">شناسه سفارش</th><th scope="col">وضعیت</th><th scope="col">تاریخ ثبت</th></tr></thead>
+            <tbody>
+              {% for order in elasi_recent_orders %}
+                <tr>
+                  <td><a href="{% url 'admin:orders_order_change' order.pk %}"><bdi>{{ order.public_id }}</bdi></a></td>
+                  <td><bdi>{{ order.status_label }}</bdi></td>
+                  <td>{{ order.created_at|date:"Y/m/d H:i" }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    {% endif %}
+  </section>
+  {{ block.super }}
+{% endblock %}

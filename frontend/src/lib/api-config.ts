@@ -112,17 +112,34 @@ export function apiBaseUrl(): string {
  */
 export function apiUrl(path: string): string {
   const base = apiBaseUrl();
+
   const normalized = path.startsWith("/")
     ? path
     : `/${path}`;
 
+  // Separate the pathname from its query string.
+  const queryIndex = normalized.indexOf("?");
+
+  const pathname =
+    queryIndex === -1
+      ? normalized
+      : normalized.slice(0, queryIndex);
+
+  const query =
+    queryIndex === -1
+      ? ""
+      : normalized.slice(queryIndex);
+
+  // Django requires the slash before the query string.
+  const djangoPath = pathname.endsWith("/")
+    ? pathname
+    : `${pathname}/`;
+
+  // Browser requests use the Next.js same-origin proxy.
   if (base.startsWith("/")) {
-    return `${base}${normalized.replace(/\/+$/, "")}`;
+    return `${base}${djangoPath.replace(/\/+$/, "")}${query}`;
   }
 
-  return `${base}${
-    normalized.endsWith("/")
-      ? normalized
-      : `${normalized}/`
-  }`;
+  // Server requests go directly to Django.
+  return `${base}${djangoPath}${query}`;
 }

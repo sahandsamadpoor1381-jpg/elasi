@@ -1,0 +1,15 @@
+{% extends "admin/base.html" %}
+{% load static %}
+{% block extrastyle %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'admin/css/elasi-admin.css' %}">
+{% endblock %}
+{% block branding %}
+  <a href="{% url 'admin:index' %}" class="elasi-admin-brand" aria-label="صفحه اصلی مدیریت ELASI">
+    <span class="elasi-admin-brand__mark" aria-hidden="true">E</span>
+    <div>
+      <strong>ELASI</strong>
+      <small>مدیریت فروشگاه جواهرات</small>
+    </div>
+  </a>
+{% endblock %}

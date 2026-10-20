@@ -1,0 +1,43 @@
+/* ELASI Admin — focused branding layered over Django's secure admin UI. */
+:root {
+  --primary: #152a24;
+  --secondary: #152a24;
+  --accent: #b8945a;
+  --header-bg: #152a24;
+  --header-color: #f8f4ec;
+  --breadcrumbs-bg: #23392f;
+  --breadcrumbs-fg: #f8f4ec;
+  --link-fg: #1f4938;
+  --link-hover-color: #73551e;
+  --body-bg: #f8f4ec;
+  --body-fg: #152a24;
+  --hairline-color: #d8d6ce;
+  --border-color: #cbcbbf;
+}
+html, body { direction: rtl; }
+body { font-family: Tahoma, Arial, sans-serif; }
+#header { align-items: center; }
+#user-tools { text-align: left; }
+.elasi-admin-brand { display: flex; align-items: center; gap: 12px; color: #f8f4ec; }
+.elasi-admin-brand__mark { display: grid; place-items: center; width: 42px; height: 42px; border: 1px solid #b8945a; border-radius: 12px; color: #d9bd87; font: 700 27px Georgia, serif; }
+.elasi-admin-brand strong { display: block; font: 600 21px Georgia, serif; letter-spacing: .11em; }
+.elasi-admin-brand small { display: block; margin-top: 2px; font-size: 11px; color: #e2d7c5; }
+.elasi-dashboard { margin: 0 0 28px; }
+.elasi-dashboard__intro { padding: 8px 0 20px; }
+.elasi-dashboard__eyebrow { color: #73551e; letter-spacing: .13em; font: 600 11px Arial, sans-serif; }
+.elasi-dashboard__intro h2 { margin: 9px 0; font-size: clamp(21px, 2.5vw, 30px); color: #152a24; }
+.elasi-dashboard__intro p, .elasi-dashboard__restricted { color: #5b645c; line-height: 1.9; }
+.elasi-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 205px), 1fr)); gap: 14px; }
+.elasi-metric { display: flex; flex-direction: column; min-height: 154px; padding: 22px; border: 1px solid #ddd9ce; border-radius: 16px; background: #fff; color: #152a24 !important; text-decoration: none !important; box-shadow: 0 12px 30px #152a2408; }
+.elasi-metric:hover, .elasi-metric:focus-visible { border-color: #73551e; box-shadow: 0 12px 30px #152a2418; }
+.elasi-metric__label { font-size: 13px; color: #4a564d; }
+.elasi-metric__value { font-size: 34px; margin: 6px 0 12px; font-variant-numeric: tabular-nums; }
+.elasi-metric__action { margin-top: auto; color: #73551e; font-size: 12px; }
+.elasi-recent { margin-top: 24px; padding: 20px; background: #fff; border: 1px solid #ddd9ce; border-radius: 16px; }
+.elasi-recent h3 { margin-bottom: 14px; font-size: 16px; }
+.elasi-recent__scroll { overflow-x: auto; }
+.elasi-recent table { width: 100%; border-collapse: collapse; }
+.elasi-recent th, .elasi-recent td { padding: 12px 10px; text-align: right; border-bottom: 1px solid #e8e5de; }
+.elasi-recent bdi { unicode-bidi: isolate; }
+:focus-visible { outline: 2px solid #73551e; outline-offset: 3px; }
+@media (max-width: 767px) { #header { flex-wrap: wrap; gap: 16px; } .elasi-dashboard__intro { padding-top: 18px; } .elasi-metric { min-height: 135px; padding: 17px; } }

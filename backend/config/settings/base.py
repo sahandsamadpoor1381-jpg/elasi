@@ -71,7 +71,7 @@ CSRF_COOKIE_SAMESITE = "Lax"
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
+    'apps.core.admin_apps.ElasiAdminConfig',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -105,7 +105,9 @@ ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        # Project overrides (such as our branded Admin base template)
+        # must take precedence over django.contrib.admin's app templates.
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

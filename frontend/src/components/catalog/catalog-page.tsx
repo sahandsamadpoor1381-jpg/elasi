@@ -498,8 +498,16 @@ export async function CatalogPage({
                 />
               ) : page.results.length === 0 ? (
                 <EmptyCatalogState
-                  title={copy.emptyTitle}
-                  description={copy.emptyDescription}
+                  title={
+                    state.hasActiveFilters
+                      ? "محصولی مطابق انتخاب شما پیدا نشد"
+                      : copy.emptyTitle
+                  }
+                  description={
+                    state.hasActiveFilters
+                      ? "برای دیدن محصولات بیشتر، فیلترها را تغییر دهید یا پاک کنید."
+                      : copy.emptyDescription
+                  }
                   action={
                     state.hasActiveFilters
                       ? {

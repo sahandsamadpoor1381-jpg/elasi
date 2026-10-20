@@ -6,6 +6,21 @@ const viewportWidths = [320, 360, 375, 390, 414, 768, 1024, 1440];
 const wcagTags = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
 
 
+// Prevent false "layout passed" results when Django is offline and the
+// storefront renders only its network-error state. The current session
+// endpoint intentionally returns 403 for guests; categories is public.
+test.beforeEach(async ({ request }) => {
+  const response = await request.get("/api/v1/categories", { timeout: 10_000 });
+
+  if (!response.ok()) {
+    throw new Error(
+      `ELASI API preflight failed: categories returned HTTP ${response.status()}. ` +
+      "Start Django on 127.0.0.1:8000 and verify INTERNAL_API_ORIGIN.",
+    );
+  }
+});
+
+
 async function openMobileFilters(page: Page) {
   const trigger = page.getByRole("button", { name: /فیلتر و مرتب‌سازی/ });
   await trigger.click();
@@ -85,7 +100,12 @@ test("invalid and reversed price ranges are explained without querying products"
   await dialog.getByLabel("حداکثر قیمت").fill("500000");
   await dialog.getByRole("button", { name: "اعمال فیلترها" }).click();
 
-  await expect(page.getByRole("alert")).toContainText("بازه‌ی قیمت معتبر نیست");
+  await expect(
+  page
+    .getByRole("region", { name: "نتایج محصولات" })
+    .getByRole("alert"),
+).toContainText("بازه‌ی قیمت معتبر نیست");
+
   await expect(page.getByRole("heading", { name: "فیلتر قیمت را اصلاح کنید" })).toBeVisible();
 });
 

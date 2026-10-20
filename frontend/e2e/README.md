@@ -1,27 +1,71 @@
-# Storefront browser acceptance
+# ELASI storefront browser acceptance
 
-The catalog suite uses Chromium and checks the listing at the required viewport widths, URL-backed filter application, Toman input handling, fixed Women/Men route scope, keyboard dismissal of the mobile dialog, and axe checks scoped to the filter controls.
+The catalog suite tests responsive layout, URL-backed filters, Toman price
+controls, fixed Women/Men scope, keyboard focus and automated accessibility.
 
-## Local setup
+## Windows / local environment
 
-From `frontend/`:
+1. Run Django in a **separate** PowerShell and keep it open:
 
-```bash
-npm ci
-npm run test:e2e:install
+   ```powershell
+   cd D:\projects\elasi\backend
+   .\.venv\Scripts\Activate.ps1
+   python manage.py runserver 127.0.0.1:8000
+   ```
+
+2. Verify the backend before running browser tests:
+
+   ```powershell
+   Test-NetConnection 127.0.0.1 -Port 8000
+   ```
+
+   `TcpTestSucceeded` must be `True`. An anonymous `GET /api/v1/auth/session/`
+   currently returns `403` by design; the frontend handles it as logged out.
+   `GET /api/v1/categories/` and catalog endpoints should return `200`.
+
+3. In a second PowerShell, execute:
+
+   ```powershell
+   cd D:\projects\elasi\frontend
+   npm ci
+   npm run test:e2e:install
+   npm run test:e2e
+   ```
+
+When `ELASI_E2E_BASE_URL` is absent, Playwright builds Next.js in **production**
+mode, starts it on `127.0.0.1:3100`, and runs Chromium with two workers.
+It does **not** start Django. The separate port avoids an existing development
+server on port 3000, including Fast Refresh reloads that can detach elements
+mid-test. You do not need to start Next.js manually. The initial run takes
+longer because it runs `next build`.
+
+If the build fails complaining about `NEXT_PUBLIC_API_BASE_URL`, remove the
+obsolete variable from `frontend/.env.local` and process environment and use
+`INTERNAL_API_ORIGIN=http://127.0.0.1:8000` instead. Do not upload secrets.
+
+Failing tests now save screenshots and Playwright traces under `test-results/`.
+You can inspect the report with `npx playwright show-trace <path-to-trace.zip>`.
+Do not publish traces from authenticated customer sessions without redaction.
+
+## Already-running staging environment
+
+To target an approved non-production environment, define
+`ELASI_E2E_BASE_URL` and ensure its backend is reachable:
+
+```powershell
+$env:ELASI_E2E_BASE_URL = "https://<approved-staging-host>"
 npm run test:e2e
+Remove-Item Env:ELASI_E2E_BASE_URL
 ```
 
-When `ELASI_E2E_BASE_URL` is unset, Playwright starts the local Next.js development server on `127.0.0.1:3000`. A local Django API may also be started on `127.0.0.1:8000` for API-backed result verification. The catalog shell and URL-state checks can run without catalog records; no products, prices, or inventory are seeded by this suite.
+This skips local build and local server startup. Do not point tests at the
+client production domain. The existing catalog tests are read-only and do not
+charge customers, create orders, send SMS or modify inventory.
 
-To target an approved non-production environment that is already running:
+## Limits
 
-```bash
-ELASI_E2E_BASE_URL=https://<approved-staging-host> npm run test:e2e
-```
-
-Do not point this suite at the client production domain. The current catalog tests are read-only and do not create accounts, send SMS, modify inventory, create orders, or initiate payments.
-
-## Browser availability
-
-The package and test code are present on the active branch, but the current coding environment has no installed Chromium binary. The latest `npm run test:e2e` attempt discovered 15 tests; all stopped at browser launch before assertions. Browser execution is **BLOCKED (0 assertions)**, not a pass or assertion failure. Install Chromium with `npm run test:e2e:install` in an approved browser-enabled environment, then rerun the suite. A passing TypeScript build or unit test is not a substitute.
+The test suite contains 15 checks, but passing it does **not** demonstrate
+correct multi-variant filtering against realistic records, complete checkout,
+payment security or merchant administration. Those require independent data-
+backed and authenticated acceptance suites. Never claim the site is ready to
+ship on the strength of these tests alone.

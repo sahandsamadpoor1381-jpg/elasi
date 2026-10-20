@@ -410,6 +410,22 @@ p {
   }
 }
 
+/* Prevent sparse results from appearing stranded at the far right of an
+   otherwise empty desktop grid. Preserve standard layout for 3+ products. */
+@media (min-width: 640px) {
+  .elasi-product-grid[data-density="single"] {
+    grid-template-columns: minmax(0, 1fr);
+    max-width: var(--card-max-width);
+    margin-inline: auto;
+  }
+
+  .elasi-product-grid[data-density="pair"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-width: calc(2 * var(--card-max-width) + var(--space-8));
+    margin-inline: auto;
+  }
+}
+
 .elasi-product-card {
   width: 100%;
   max-width: var(--card-max-width);
