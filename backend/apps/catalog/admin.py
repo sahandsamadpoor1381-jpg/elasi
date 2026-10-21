@@ -1,4 +1,12 @@
+from decimal import Decimal
+
 from django.contrib import admin
+
+from .admin_forms import (
+    ProductImageAdminForm,
+    ProductImageInlineFormSet,
+    ProductVariantAdminForm,
+)
 
 from .models import (
     Category,
@@ -56,6 +64,7 @@ class CollectionAdmin(admin.ModelAdmin):
 
 class ProductVariantInline(admin.TabularInline):
     model = ProductVariant
+    form = ProductVariantAdminForm
     extra = 0
 
     fields = (
@@ -65,14 +74,15 @@ class ProductVariantInline(admin.TabularInline):
         "purity",
         "size",
         "weight_grams",
-        "price_rial",
-        "compare_at_price_rial",
+        "price_toman",
+        "compare_at_price_toman",
         "is_active",
     )
 
 
 class ProductImageInline(admin.TabularInline):
     model = ProductImage
+    formset = ProductImageInlineFormSet
     extra = 0
 
     fields = (
@@ -130,13 +140,21 @@ class ProductAdmin(admin.ModelAdmin):
 
 @admin.register(ProductVariant)
 class ProductVariantAdmin(admin.ModelAdmin):
+    form = ProductVariantAdminForm
+
+    fields = (
+        "product", "sku", "material", "karat", "purity", "size",
+        "weight_grams", "price_toman", "compare_at_price_toman",
+        "is_active", "created_at", "updated_at",
+    )
+
     list_display = (
         "sku",
         "product",
         "material",
         "karat",
         "size",
-        "price_rial",
+        "price_toman_display",
         "is_active",
     )
 
@@ -161,9 +179,18 @@ class ProductVariantAdmin(admin.ModelAdmin):
         "updated_at",
     )
 
+    @admin.display(description="قیمت (تومان)")
+    def price_toman_display(self, obj):
+        price = obj.price_rial
+        if price % 10 == 0:
+            return f"{price // 10:,}"
+        return f"{Decimal(price) / Decimal(10):,.1f}"
+
 
 @admin.register(ProductImage)
 class ProductImageAdmin(admin.ModelAdmin):
+    form = ProductImageAdminForm
+
     list_display = (
         "product",
         "image",
