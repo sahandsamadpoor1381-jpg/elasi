@@ -13,7 +13,7 @@ from apps.core.validators import (
     normalize_whitespace,
 )
 
-from .models import Order, OrderItem
+from .models import Order, OrderItem, Shipment
 
 
 ADDRESS_LINE_MAX_LENGTH = 500
@@ -247,6 +247,12 @@ class OrderItemSerializer(
         )
 
 
+class ShipmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Shipment
+        fields = ("carrier", "tracking_code", "shipped_at", "delivered_at")
+
+
 class OrderSerializer(
     serializers.ModelSerializer,
 ):
@@ -254,6 +260,7 @@ class OrderSerializer(
         many=True,
         read_only=True,
     )
+    shipment = ShipmentSerializer(read_only=True)
 
     class Meta:
         model = Order
@@ -262,6 +269,7 @@ class OrderSerializer(
             "public_id",
             "status",
             "shipping_method",
+            "shipment",
             "subtotal_rial",
             "shipping_fee_rial",
             "total_rial",

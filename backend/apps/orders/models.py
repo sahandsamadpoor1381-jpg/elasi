@@ -254,3 +254,25 @@ class OrderItem(models.Model):
             f"{self.sku} x "
             f"{self.quantity}"
         )
+
+class Shipment(models.Model):
+    """One customer-visible parcel per order (ELASI v1 shipping policy)."""
+
+    order = models.OneToOneField(
+        Order, on_delete=models.PROTECT, related_name="shipment",
+    )
+    carrier = models.CharField(max_length=80)
+    tracking_code = models.CharField(max_length=120)
+    shipped_at = models.DateTimeField()
+    delivered_at = models.DateTimeField(null=True, blank=True)
+    recorded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
+        null=True, blank=True, related_name="recorded_shipments",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("-created_at",)
+
+    def __str__(self) -> str:
+        return f"Shipment {self.tracking_code} for {self.order.public_id}"

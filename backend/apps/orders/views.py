@@ -1,4 +1,5 @@
-from rest_framework import status
+from rest_framework import status, generics
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import (
     IsAuthenticated,
 )
@@ -83,3 +84,29 @@ class CheckoutAPIView(APIView):
             OrderSerializer(order).data,
             status=status.HTTP_201_CREATED,
         )
+
+class CustomerOrderPagination(PageNumberPagination):
+    page_size = 20
+    max_page_size = 20
+
+
+class CustomerOrderListAPIView(generics.ListAPIView):
+    """Return only the authenticated customer's orders."""
+    permission_classes = (IsAuthenticated,)
+    serializer_class = OrderSerializer
+    pagination_class = CustomerOrderPagination
+
+    def get_queryset(self):
+        return (Order.objects.filter(user=self.request.user)
+                .prefetch_related("items", "shipment"))
+
+
+class CustomerOrderDetailAPIView(generics.RetrieveAPIView):
+    """A UUID is not authorization; always filter by owner."""
+    permission_classes = (IsAuthenticated,)
+    serializer_class = OrderSerializer
+    lookup_field = "public_id"
+
+    def get_queryset(self):
+        return (Order.objects.filter(user=self.request.user)
+                .prefetch_related("items", "shipment"))

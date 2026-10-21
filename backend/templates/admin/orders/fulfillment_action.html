@@ -1,0 +1,21 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+{% block content %}
+<div class="module" dir="rtl">
+  <h1>{{ title }}</h1>
+  <p>سفارش: <strong dir="ltr">{{ order.public_id }}</strong></p>
+  <p>وضعیت کنونی: {{ order.get_status_display }}</p>
+  {% if form.non_field_errors %}
+    <div class="errornote">{{ form.non_field_errors }}</div>
+  {% endif %}
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <div class="submit-row">
+      <input type="submit" value="{{ action_label }}" class="default">
+      <a href="{% url 'admin:orders_order_change' order.pk %}" class="button">بازگشت به سفارش</a>
+    </div>
+  </form>
+  <p>این اقدام وضعیت سفارش را تغییر می‌دهد و پس از ثبت ارسال، رزرو موجودی دقیقاً یک‌بار مصرف می‌شود.</p>
+</div>
+{% endblock %}
