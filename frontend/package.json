@@ -12,7 +12,8 @@
     "test:cart": "node --disable-warning=ExperimentalWarning --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test tests/cart-session.test.mjs",
     "test:orders": "node --disable-warning=ExperimentalWarning --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test tests/order-presentation.test.mjs",
     "test:e2e": "playwright test",
-    "test:e2e:install": "playwright install chromium"
+    "test:e2e:install": "playwright install chromium",
+    "test:e2e:checkout": "playwright test checkout-browser.spec.ts"
   },
   "dependencies": {
     "lucide-react": "^1.49.0",

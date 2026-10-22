@@ -2,6 +2,7 @@
 
 import {
   useEffect,
+  useId,
   useState,
   type FormEvent,
 } from "react";
@@ -163,6 +164,11 @@ export function LoginForm({
   headingLevel = "h1",
 }: LoginFormProps) {
   const Heading = headingLevel;
+
+  // The mobile and desktop forms coexist in the DOM. Each instance needs
+  // distinct input IDs so its labels target the correct (visible) fields.
+  const phoneInputId = useId();
+  const otpInputId = useId();
 
   const router = useRouter();
 
@@ -532,14 +538,14 @@ export function LoginForm({
         >
           <div>
             <label
-              htmlFor="phone-number"
+              htmlFor={phoneInputId}
               className="mb-2 block text-sm font-medium text-elasi-text"
             >
               شماره موبایل
             </label>
 
             <input
-              id="phone-number"
+              id={phoneInputId}
               name="phone_number"
               type="tel"
               inputMode="tel"
@@ -697,14 +703,14 @@ export function LoginForm({
 
           <div>
             <label
-              htmlFor="otp-code"
+              htmlFor={otpInputId}
               className="mb-2 block text-sm font-medium text-elasi-text"
             >
               کد تأیید
             </label>
 
             <input
-              id="otp-code"
+              id={otpInputId}
               name="otp_code"
               type="text"
               inputMode="numeric"

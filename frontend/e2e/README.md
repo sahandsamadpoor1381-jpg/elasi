@@ -69,3 +69,27 @@ correct multi-variant filtering against realistic records, complete checkout,
 payment security or merchant administration. Those require independent data-
 backed and authenticated acceptance suites. Never claim the site is ready to
 ship on the strength of these tests alone.
+
+## Delivery 05.7 — browser checkout contract (mocked API)
+
+Run with a local production Next.js server started by Playwright:
+
+```powershell
+cd D:\projects\elasi\frontend
+npm run test:e2e:checkout
+```
+
+This additional suite checks the actual React cart/login/checkout UI, navigation,
+OTP form behavior, shipping quote failure/retry, amount presentation and request
+payloads at desktop (1440px) and mobile (390px). Only browser `/api/v1/*`
+requests are intercepted with deterministic fixtures. It **does not** send real
+SMS, call a payment gateway, consume inventory, or create orders in Django.
+It does not depend on real catalog products or a running Django service.
+
+It complements `python manage.py test apps.orders.tests_customer_journey
+--settings=config.settings.test`, which covers real Django API contracts on an
+isolated test database. Both passing is still **not** proof of a full Django-
+backed Playwright journey, PostgreSQL concurrency, or production readiness.
+
+Failures retain traces/screenshots. Never replace this suite with live customer
+credentials or point it at an actual production checkout.
