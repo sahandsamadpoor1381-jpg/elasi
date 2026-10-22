@@ -21,6 +21,8 @@ const startLocalFrontend = !process.env.ELASI_E2E_BASE_URL;
 export default defineConfig({
   testDir: "./e2e",
   testMatch: "**/*.spec.ts",
+  // Real-Django acceptance has its own isolated testserver configuration.
+  testIgnore: "**/checkout-live.spec.ts",
 
   // Limit parallel execution for local stability.
   fullyParallel: true,

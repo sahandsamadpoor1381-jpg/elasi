@@ -93,3 +93,32 @@ backed Playwright journey, PostgreSQL concurrency, or production readiness.
 
 Failures retain traces/screenshots. Never replace this suite with live customer
 credentials or point it at an actual production checkout.
+
+## Isolated live-Django checkout acceptance (Delivery 05.8)
+
+From `frontend/`, run:
+
+```powershell
+npm run test:e2e:live
+```
+
+This **does not** use the mocked `/api/v1` routes in
+`checkout-browser.spec.ts`. Playwright launches:
+
+- Django `testserver` on `127.0.0.1:8017` with a disposable SQLite test
+  database and one synthetic product (`browser_e2e.json`).
+- A Next.js production build on `127.0.0.1:3110` configured to use that
+  Django origin through the ordinary same-origin proxy.
+
+The OTP provider is test-only and stores the generated code in a private
+short-lived OS temporary file consumed by the browser test, **not** an HTTP
+endpoint or external SMS. The temporary file is removed after the test.
+Django's database is discarded when `testserver` exits. No merchant DB,
+real gateway, SMS subscription or payment action is involved.
+
+Preconditions: `backend/.venv` with the project requirements installed,
+frontend dependencies + Playwright Chromium installed, and ports `8017`
+and `3110` unused. Run the suite only on your own development workstation.
+The browser verifies product → guest cart → OTP → shipping quote → order
+creation → unpaid order detail. PostgreSQL concurrency, production SMS,
+real payments and Render remain separate release gates.

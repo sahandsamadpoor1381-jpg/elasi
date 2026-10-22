@@ -1,0 +1,59 @@
+[
+  {
+    "model": "catalog.category",
+    "pk": 99001,
+    "fields": {
+      "name": "انگشتر",
+      "slug": "rings",
+      "is_active": true,
+      "sort_order": 1
+    }
+  },
+  {
+    "model": "catalog.product",
+    "pk": 99001,
+    "fields": {
+      "name": "انگشتر آزمایشی ELASI",
+      "slug": "e2e-checkout-ring",
+      "category": 99001,
+      "collections": [],
+      "short_description": "نمونه آزمایشی برای بررسی یکپارچگی فروشگاه",
+      "description": "این کالا صرفاً در دیتابیس موقت تست وجود دارد.",
+      "gender": "women",
+      "status": "active",
+      "allow_custom_size": false,
+      "is_featured": true,
+      "search_text": "انگشتر آزمایشی ELASI",
+      "created_at": "2026-10-20T12:00:00Z",
+      "updated_at": "2026-10-20T12:00:00Z"
+    }
+  },
+  {
+    "model": "catalog.productvariant",
+    "pk": 99001,
+    "fields": {
+      "product": 99001,
+      "sku": "ELASI-LIVE-E2E-01",
+      "material": "gold",
+      "karat": 18,
+      "purity": "",
+      "size": "54",
+      "weight_grams": "3.200",
+      "price_rial": 2000000,
+      "compare_at_price_rial": null,
+      "is_active": true,
+      "created_at": "2026-10-20T12:00:00Z",
+      "updated_at": "2026-10-20T12:00:00Z"
+    }
+  },
+  {
+    "model": "inventory.inventorybalance",
+    "pk": 99001,
+    "fields": {
+      "variant": 99001,
+      "on_hand": 3,
+      "reserved": 0,
+      "updated_at": "2026-10-20T12:00:00Z"
+    }
+  }
+]
