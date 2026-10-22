@@ -15,6 +15,7 @@ from apps.inventory.models import (
 )
 
 from .models import Order, OrderItem
+from .shipping import ShippingFeeUnconfigured, get_postal_shipping_fee_rial
 
 
 User = get_user_model()
@@ -631,7 +632,13 @@ def checkout_cart(
             * item.quantity
         )
 
-    shipping_fee_rial = 0
+    try:
+        shipping_fee_rial = get_postal_shipping_fee_rial()
+    except ShippingFeeUnconfigured as exc:
+        raise CheckoutError(
+            "shipping_fee_unconfigured",
+            "Shipping fee must be configured before checkout.",
+        ) from exc
 
     total_rial = (
         subtotal_rial

@@ -9,6 +9,7 @@ from rest_framework.views import APIView
 
 from apps.core.api import get_cart_token
 
+from .shipping import ShippingFeeUnconfigured, get_postal_shipping_fee_rial
 from .models import Order
 from .serializers import (
     CheckoutSerializer,
@@ -36,10 +37,35 @@ def checkout_error_response(
     if error.sku is not None:
         payload["sku"] = error.sku
 
-    return Response(
-        payload,
-        status=status.HTTP_400_BAD_REQUEST,
+    response_status = (
+        status.HTTP_503_SERVICE_UNAVAILABLE
+        if error.code == "shipping_fee_unconfigured"
+        else status.HTTP_400_BAD_REQUEST
     )
+    return Response(payload, status=response_status)
+
+
+class CheckoutShippingQuoteAPIView(APIView):
+    """Public to logged-in customers; shipping amount is always server-owned."""
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request: Request) -> Response:
+        try:
+            fee = get_postal_shipping_fee_rial()
+        except ShippingFeeUnconfigured:
+            return Response(
+                {
+                    "code": "shipping_fee_unconfigured",
+                    "detail": "Shipping terms are not configured.",
+                },
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+                headers={"Cache-Control": "no-store"},
+            )
+
+        return Response({
+            "shipping_method": Order.ShippingMethod.POSTAL,
+            "shipping_fee_rial": fee,
+        }, headers={"Cache-Control": "no-store"})
 
 
 class CheckoutAPIView(APIView):

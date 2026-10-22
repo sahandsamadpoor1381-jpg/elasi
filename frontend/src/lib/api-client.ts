@@ -125,6 +125,8 @@ const CUSTOMER_MESSAGES: Record<string, string> = {
     "این سبد خرید به حساب کاربری شما تعلق ندارد.",
 
   // Checkout
+  shipping_fee_unconfigured:
+    "هزینه ارسال هنوز توسط فروشگاه تعیین نشده است. ثبت سفارش فعلاً غیرفعال است.",
   empty_cart:
     "سبد خرید شما خالی است.",
   order_not_found:

@@ -53,6 +53,16 @@ export class CheckoutApiError extends ApiError {
 }
 
 
+export type ShippingQuote = {
+  shipping_method: "postal";
+  shipping_fee_rial: number;
+};
+
+/** The backend owns the amount; do not derive it from the cart or location. */
+export async function getCheckoutShippingQuote(): Promise<ShippingQuote> {
+  return apiRequest<ShippingQuote>("/checkout/shipping-quote/");
+}
+
 export async function checkoutCart(
   cartToken: string,
   payload: CheckoutPayload,

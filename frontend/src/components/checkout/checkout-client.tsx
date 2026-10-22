@@ -47,6 +47,7 @@ import {
 import {
   CheckoutApiError,
   checkoutCart,
+  getCheckoutShippingQuote,
 } from "@/lib/checkout-api";
 
 import type {
@@ -230,6 +231,9 @@ function getCheckoutErrorMessage(
     switch (
       error.code
     ) {
+      case "shipping_fee_unconfigured":
+        return "هزینه ارسال هنوز توسط فروشگاه نهایی نشده است. ثبت سفارش فعلاً امکان‌پذیر نیست.";
+
       case "empty_cart":
         return "سبد خرید شما خالی است.";
 
@@ -377,6 +381,42 @@ export function CheckoutClient() {
     useState(false);
 
 
+  // null = not quoted. Never assume free shipping on a failed quote.
+  const [shippingFeeRial, setShippingFeeRial] = useState<number | null>(null);
+  const [shippingQuoteError, setShippingQuoteError] = useState<string | null>(null);
+  const [isShippingLoading, setIsShippingLoading] = useState(true);
+  const [shippingRetry, setShippingRetry] = useState(0);
+
+  useEffect(() => {
+    if (isAuthLoading || !user) {
+      return;
+    }
+
+    let active = true;
+    setShippingFeeRial(null);
+    setShippingQuoteError(null);
+    setIsShippingLoading(true);
+    getCheckoutShippingQuote()
+      .then((quote) => {
+        if (!active) return;
+        if (!Number.isSafeInteger(quote.shipping_fee_rial) || quote.shipping_fee_rial < 0) {
+          throw new Error("Invalid shipping quote");
+        }
+        setShippingFeeRial(quote.shipping_fee_rial);
+        setShippingQuoteError(null);
+      })
+      .catch(() => {
+        if (!active) return;
+        setShippingFeeRial(null);
+        setShippingQuoteError("هزینه ارسال در دسترس نیست. دوباره تلاش کنید؛ تا دریافت مبلغ معتبر، ثبت سفارش ممکن نیست.");
+      })
+      .finally(() => {
+        if (active) setIsShippingLoading(false);
+      });
+
+    return () => { active = false; };
+  }, [isAuthLoading, user, shippingRetry]);
+
   const [
     completedOrder,
     setCompletedOrder,
@@ -523,6 +563,8 @@ export function CheckoutClient() {
         cart.items.length >
           0 &&
         !hasInsufficientStock &&
+        shippingFeeRial !== null &&
+        !isShippingLoading &&
         !isSubmitting,
     );
 
@@ -833,6 +875,11 @@ export function CheckoutClient() {
 
     if (hasInsufficientStock) {
       setSubmitError("موجودی برخی کالاها کافی نیست. ابتدا تعداد آن‌ها را در سبد خرید اصلاح کنید.");
+      return;
+    }
+
+    if (shippingFeeRial === null || isShippingLoading) {
+      setSubmitError("تا مشخص شدن هزینه ارسال امکان ثبت سفارش وجود ندارد.");
       return;
     }
 
@@ -1608,8 +1655,14 @@ export function CheckoutClient() {
                   ارسال
                 </dt>
 
-                <dd className="max-w-[190px] text-left text-xs leading-6 text-elasi-muted">
-                  هزینه ارسال در نسخه فعلی هنوز نهایی نشده است.
+                <dd className="max-w-[230px] text-left text-sm leading-6 text-elasi-text" aria-live="polite">
+                  {isShippingLoading
+                    ? "در حال دریافت هزینه ارسال..."
+                    : shippingFeeRial === null
+                      ? "هزینه ارسال نامشخص است"
+                      : shippingFeeRial === 0
+                        ? "رایگان"
+                        : `${formatToman(shippingFeeRial)} تومان`}
                 </dd>
               </div>
             </dl>
@@ -1618,18 +1671,31 @@ export function CheckoutClient() {
             <div className="mt-6 border-t border-elasi-green/10 pt-5">
               <div className="flex items-end justify-between gap-4">
                 <p className="font-medium text-elasi-green">
-                  مبلغ فعلی سبد
+                  {shippingFeeRial === null ? "جمع محصولات (بدون ارسال)" : "جمع سفارش با ارسال"}
                 </p>
 
                 <p className="text-xl font-semibold text-elasi-green">
                   {formatToman(
-                    subtotal,
+                    subtotal + (shippingFeeRial ?? 0),
                   )}{" "}
                   تومان
                 </p>
               </div>
             </div>
 
+
+            {shippingQuoteError ? (
+              <div role="alert" className="mt-5 text-sm leading-7 text-elasi-danger">
+                <p>{shippingQuoteError}</p>
+                <button
+                  type="button"
+                  className="mt-2 underline underline-offset-4"
+                  onClick={() => setShippingRetry((value) => value + 1)}
+                >
+                  تلاش مجدد برای دریافت هزینه ارسال
+                </button>
+              </div>
+            ) : null}
 
             {hasInsufficientStock ? (
               <p role="alert" className="mt-5 text-sm leading-7 text-elasi-danger">

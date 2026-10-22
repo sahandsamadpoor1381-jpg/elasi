@@ -196,6 +196,13 @@ REST_FRAMEWORK = {
     ),
 }
 
+# Merchant-approved flat postal shipping rate, stored in Rial.
+# -1 means UNCONFIGURED: checkout is blocked, never silently free.
+# Set to 0 only for explicitly approved free shipping.
+ELASI_POSTAL_SHIPPING_FEE_RIAL = env.int(
+    "ELASI_POSTAL_SHIPPING_FEE_RIAL", default=-1
+)
+
 OTP_SMS_BACKEND = env(
     "OTP_SMS_BACKEND",
     default="apps.accounts.sms.ConsoleOTPBackend",

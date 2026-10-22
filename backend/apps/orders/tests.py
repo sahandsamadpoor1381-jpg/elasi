@@ -11,7 +11,7 @@ from django.db import (
     IntegrityError,
     transaction,
 )
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
 from apps.catalog.models import (
     Category,
@@ -268,6 +268,63 @@ class CheckoutAPITests(APITestCase):
                 "Test checkout address"
             ),
         }
+
+    def test_shipping_quote_requires_authentication(self):
+        response = self.client.get("/api/v1/checkout/shipping-quote/")
+        self.assertIn(response.status_code, (401, 403))
+
+    @override_settings(ELASI_POSTAL_SHIPPING_FEE_RIAL=-1)
+    def test_missing_shipping_fee_blocks_checkout_without_reserving_stock(self):
+        cart = self.create_cart()
+        self.client.force_authenticate(user=self.user)
+        quote = self.client.get("/api/v1/checkout/shipping-quote/")
+        self.assertEqual(quote.status_code, 503)
+        self.assertEqual(quote.json()["code"], "shipping_fee_unconfigured")
+
+        response = self.client.post(
+            "/api/v1/checkout/", self.checkout_payload(),
+            format="json", HTTP_X_CART_TOKEN=str(cart.token),
+        )
+        self.assertEqual(response.status_code, 503)
+        self.assertEqual(response.json()["code"], "shipping_fee_unconfigured")
+        self.assertFalse(Order.objects.exists())
+        cart.refresh_from_db()
+        self.assertEqual(cart.status, Cart.Status.ACTIVE)
+        balance = InventoryBalance.objects.get(variant=self.variant)
+        self.assertEqual(balance.reserved, 2)
+
+    @override_settings(ELASI_POSTAL_SHIPPING_FEE_RIAL=150_000)
+    def test_approved_postal_shipping_fee_is_quoted_and_charged_by_server(self):
+        cart = self.create_cart()
+        self.client.force_authenticate(user=self.user)
+        quote = self.client.get("/api/v1/checkout/shipping-quote/")
+        self.assertEqual(quote.status_code, 200)
+        self.assertEqual(quote.json(), {
+            "shipping_method": "postal", "shipping_fee_rial": 150_000,
+        })
+        payload = self.checkout_payload()
+        payload["shipping_fee_rial"] = 0  # never trust client value
+        response = self.client.post(
+            "/api/v1/checkout/", payload,
+            format="json", HTTP_X_CART_TOKEN=str(cart.token),
+        )
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.json()["shipping_fee_rial"], 150_000)
+        self.assertEqual(response.json()["total_rial"], 250_150_000)
+
+    @override_settings(ELASI_POSTAL_SHIPPING_FEE_RIAL=150_005)
+    def test_shipping_quote_rejects_fractional_toman_fee(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get("/api/v1/checkout/shipping-quote/")
+        self.assertEqual(response.status_code, 503)
+        self.assertEqual(response.json()["code"], "shipping_fee_unconfigured")
+
+    @override_settings(ELASI_POSTAL_SHIPPING_FEE_RIAL=0)
+    def test_free_shipping_requires_explicit_zero(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get("/api/v1/checkout/shipping-quote/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["shipping_fee_rial"], 0)
 
     def test_checkout_requires_authentication(
         self,

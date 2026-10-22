@@ -44,6 +44,10 @@ from .base import *  # noqa: E402,F403
 
 DEBUG = False
 
+# Existing checkout tests explicitly use the approved-for-tests free policy;
+# no default zero fee is implied for development or production deployments.
+ELASI_POSTAL_SHIPPING_FEE_RIAL = 0
+
 USE_POSTGRES = (
     os.environ.get("ELASI_TEST_USE_POSTGRES", "").lower()
     in {"1", "true", "yes"}
