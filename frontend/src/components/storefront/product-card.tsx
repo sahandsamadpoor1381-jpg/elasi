@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { WishlistButton } from "@/components/wishlist/wishlist-button";
+import { mediaPath } from "@/lib/media";
 
 import type { ProductSummary } from "@/types/catalog";
 
@@ -75,7 +76,7 @@ export function ProductCard({ product }: ProductCardProps) {
         <div className="relative aspect-[4/5] overflow-hidden rounded-card bg-white">
           {primaryImage ? (
             <Image
-              src={primaryImage.image}
+              src={mediaPath(primaryImage.image) ?? primaryImage.image}
               alt={primaryImage.alt_text || product.name}
               fill
               sizes={PRODUCT_IMAGE_SIZES}

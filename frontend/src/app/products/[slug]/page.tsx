@@ -124,12 +124,14 @@ export default async function ProductPage({
         <div className="elasi-container">
           <div className="grid gap-10 lg:grid-cols-[1.08fr_0.92fr] lg:items-start lg:gap-16">
             <ProductGallery
+              key={product.slug}
               productName={product.name}
               images={product.images}
             />
 
             <div className="lg:sticky lg:top-8">
               <ProductPurchasePanel
+                key={product.slug}
                 product={product}
               />
             </div>

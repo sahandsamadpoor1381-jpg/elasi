@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useState } from "react";
 
+import { mediaPath } from "@/lib/media";
 import type { ProductImage } from "@/types/catalog";
 
 
@@ -58,7 +59,7 @@ export function ProductGallery({
     <div>
       <div className="relative aspect-[4/5] overflow-hidden rounded-card bg-white">
         <Image
-          src={selectedImage.image}
+          src={mediaPath(selectedImage.image) ?? selectedImage.image}
           alt={
             selectedImage.alt_text ||
             productName
@@ -98,7 +99,7 @@ export function ProductGallery({
                   }`}
                 >
                   <Image
-                    src={image.image}
+                    src={mediaPath(image.image) ?? image.image}
                     alt=""
                     fill
                     sizes={PRODUCT_THUMBNAIL_SIZES}

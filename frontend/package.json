@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test:catalog": "node --disable-warning=ExperimentalWarning --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test tests/catalog-params.test.mjs",
+    "test:pdp": "node --disable-warning=ExperimentalWarning --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test tests/product-variants.test.mjs",
     "test:orders": "node --disable-warning=ExperimentalWarning --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test tests/order-presentation.test.mjs",
     "test:e2e": "playwright test",
     "test:e2e:install": "playwright install chromium"

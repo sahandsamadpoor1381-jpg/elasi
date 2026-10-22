@@ -1,9 +1,17 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
 import { useCart } from "@/components/cart/cart-provider";
 import { WishlistButton } from "@/components/wishlist/wishlist-button";
+import { formatToman } from "@/lib/format";
+import {
+  activeProductVariants,
+  canBuyProductVariant,
+  defaultProductVariant,
+  validCompareAtPriceRial,
+} from "@/lib/product-variants";
 import type {
   Product,
   ProductVariant,
@@ -31,19 +39,6 @@ function getCategoryLabel(
   fallback: string,
 ): string {
   return categoryLabels[slug] ?? fallback;
-}
-
-
-function formatToman(
-  priceRial: number,
-): string {
-  const toman = Math.floor(
-    priceRial / 10,
-  );
-
-  return new Intl.NumberFormat(
-    "fa-IR",
-  ).format(toman);
 }
 
 
@@ -115,10 +110,8 @@ export function ProductPurchasePanel({
     error: cartError,
   } = useCart();
 
-  const initialVariant =
-    product.variants.find(
-      (variant) => variant.available > 0,
-    ) ?? product.variants[0];
+  const variants = activeProductVariants(product.variants);
+  const initialVariant = defaultProductVariant(variants);
 
   const [
     selectedSku,
@@ -138,19 +131,11 @@ export function ProductPurchasePanel({
   ] = useState(false);
 
   const selectedVariant =
-    product.variants.find(
-      (variant) =>
-        variant.sku === selectedSku,
-    ) ?? initialVariant;
+    variants.find((variant) => variant.sku === selectedSku) ?? null;
 
-  const hasMultipleVariants =
-    product.variants.length > 1;
-
-  const isAvailable =
-    Boolean(
-      selectedVariant &&
-        selectedVariant.available > 0,
-    );
+  const hasMultipleVariants = variants.length > 1;
+  const isAvailable = canBuyProductVariant(selectedVariant);
+  const compareAtPriceRial = validCompareAtPriceRial(selectedVariant);
 
 
   async function handleAddToCart() {
@@ -220,11 +205,15 @@ export function ProductPurchasePanel({
               </p>
 
               <p className="mt-1 text-xl font-semibold text-elasi-green">
-                {formatToman(
-                  selectedVariant.price_rial,
-                )}{" "}
-                تومان
+                {formatToman(selectedVariant.price_rial)} تومان
               </p>
+
+              {compareAtPriceRial !== null ? (
+                <p className="mt-1 text-sm text-elasi-muted line-through decoration-elasi-muted/60">
+                  <span className="sr-only">قیمت پیشین: </span>
+                  {formatToman(compareAtPriceRial)} تومان
+                </p>
+              ) : null}
             </div>
 
             <div
@@ -247,87 +236,61 @@ export function ProductPurchasePanel({
         )}
       </div>
 
-      {/* Variant selector */}
+      {/* Native radio inputs support keyboard arrows and screen readers. */}
       {hasMultipleVariants ? (
-        <div className="mt-9">
-          <div className="flex items-end justify-between gap-4">
-            <div>
-              <p className="text-caption text-elasi-muted">
-                انتخاب
-              </p>
+        <fieldset className="mt-9">
+          <legend className="text-xl font-semibold text-elasi-green">
+            مدل محصول
+          </legend>
+          <p className="mt-2 text-caption text-elasi-muted">
+            {formatPersianNumber(variants.length)} گزینه برای انتخاب
+          </p>
 
-              <h2 className="mt-1 text-xl font-semibold text-elasi-green">
-                مدل محصول
-              </h2>
-            </div>
+          <div className="mt-5 grid gap-3">
+            {variants.map((variant) => {
+              const isSelected = variant.sku === selectedSku;
+              const variantAvailable = canBuyProductVariant(variant);
 
-            <span className="text-caption text-elasi-muted">
-              {formatPersianNumber(
-                product.variants.length,
-              )}{" "}
-              گزینه
-            </span>
+              return (
+                <label
+                  key={variant.sku}
+                  className={`flex min-h-16 cursor-pointer items-center gap-4 rounded-lg border px-5 py-4 text-right transition focus-within:ring-2 focus-within:ring-elasi-gold-text focus-within:ring-offset-2 ${
+                    isSelected
+                      ? "border-elasi-gold-text bg-white"
+                      : "border-elasi-border-strong bg-white/35 hover:border-elasi-gold-text hover:bg-white/60"
+                  } ${isAddingToCart ? "cursor-not-allowed opacity-70" : ""}`}
+                >
+                  <input
+                    type="radio"
+                    name={`product-variant-${product.slug}`}
+                    value={variant.sku}
+                    checked={isSelected}
+                    onChange={() => handleVariantChange(variant.sku)}
+                    disabled={isAddingToCart}
+                    className="peer sr-only"
+                  />
+                  <span
+                    aria-hidden="true"
+                    className="size-4 shrink-0 rounded-full border border-elasi-border-strong bg-white peer-checked:border-elasi-gold-text peer-checked:bg-elasi-gold-text"
+                  />
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm font-medium text-elasi-text">
+                      {getVariantTitle(variant)}
+                    </span>
+                    <span className="mt-1 block text-xs text-elasi-muted">
+                      {variantAvailable ? "آماده سفارش" : "در حال حاضر ناموجود"}
+                      {" · "}
+                      کد {variant.sku}
+                    </span>
+                  </span>
+                  <span className="shrink-0 text-sm font-medium text-elasi-green">
+                    {formatToman(variant.price_rial)} تومان
+                  </span>
+                </label>
+              );
+            })}
           </div>
-
-          <div
-            className="mt-5 grid gap-3"
-            role="radiogroup"
-            aria-label="انتخاب مدل محصول"
-          >
-            {product.variants.map(
-              (variant) => {
-                const isSelected =
-                  variant.sku ===
-                  selectedVariant?.sku;
-
-                const variantAvailable =
-                  variant.available > 0;
-
-                return (
-                  <button
-                    key={variant.sku}
-                    type="button"
-                    role="radio"
-                    aria-checked={
-                      isSelected
-                    }
-                    onClick={() =>
-                      handleVariantChange(
-                        variant.sku,
-                      )
-                    }
-                    className={`flex min-h-16 items-center justify-between gap-5 rounded-lg border px-5 py-4 text-right transition ${
-                      isSelected
-                        ? "border-elasi-gold-text bg-white"
-                        : "border-elasi-border-strong bg-white/35 hover:border-elasi-gold-text hover:bg-white/60"
-                    }`}
-                  >
-                    <div>
-                      <p className="text-sm font-medium text-elasi-text">
-                        {getVariantTitle(
-                          variant,
-                        )}
-                      </p>
-
-                      <p className="mt-1 text-xs text-elasi-muted">
-                        {variantAvailable
-                          ? "آماده سفارش"
-                          : "در حال حاضر ناموجود"}
-                      </p>
-                    </div>
-
-                    <p className="shrink-0 text-sm font-medium text-elasi-green">
-                      {formatToman(
-                        variant.price_rial,
-                      )}{" "}
-                      تومان
-                    </p>
-                  </button>
-                );
-              },
-            )}
-          </div>
-        </div>
+        </fieldset>
       ) : null}
 
       {/* Custom size */}
@@ -345,9 +308,8 @@ export function ProductPurchasePanel({
               </p>
 
               <p className="mt-2 text-sm leading-7 text-elasi-muted">
-                برای این محصول امکان ثبت
-                درخواست سایز اختصاصی وجود
-                دارد.
+                درخواست سایز اختصاصی نیازمند بررسی و تأیید فروشگاه
+                است. ثبت آنلاین این درخواست هنوز فعال نشده است.
               </p>
             </div>
           </div>
@@ -370,7 +332,7 @@ export function ProductPurchasePanel({
             ? "در حال افزودن..."
             : isAvailable
               ? "افزودن به سبد خرید"
-              : "ناموجود"}
+              : selectedVariant ? "ناموجود" : "مدل قابل خرید ندارد"}
         </button>
 
         {addToCartSuccess ? (
@@ -379,6 +341,10 @@ export function ProductPurchasePanel({
             className="mt-3 text-center text-sm font-medium text-elasi-green"
           >
             محصول به سبد خرید اضافه شد.
+            {" "}
+            <Link href="/cart" className="underline underline-offset-4 hover:text-elasi-gold-text">
+              مشاهده سبد خرید
+            </Link>
           </p>
         ) : null}
 
