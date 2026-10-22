@@ -8,7 +8,7 @@ import { ArrowRight, PackageCheck } from "lucide-react";
 import { useAuth } from "@/components/auth/auth-provider";
 import { customerMessage } from "@/lib/api-client";
 import { getCustomerOrder } from "@/lib/orders-api";
-import { orderDate, orderStatusLabel, orderToman } from "@/lib/order-presentation";
+import { orderDate, orderFulfillmentStep, orderStatusLabel, orderToman } from "@/lib/order-presentation";
 import type { Order } from "@/types/order";
 
 export function OrderDetailClient({ publicId }: { publicId: string }) {
@@ -83,11 +83,36 @@ export function OrderDetailClient({ publicId }: { publicId: string }) {
                   این سفارش هنوز پرداخت نشده است. درگاه آنلاین پس از فعال‌سازی در دسترس قرار می‌گیرد. ثبت سفارش به معنای تأیید پرداخت نیست.
                 </p>
               ) : null}
-              {displayOrder.shipment?.tracking_code ? (
+              {orderFulfillmentStep(displayOrder.status) > 0 ? (
+                <div className="mt-6 border-t border-elasi-green/10 pt-6" aria-label="مراحل انجام سفارش">
+                  <ol className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    {["پرداخت تأییدشده", "آماده‌سازی", "ارسال مرسوله", "تحویل به مشتری"].map((label, index) => {
+                      const complete = orderFulfillmentStep(displayOrder.status) >= index + 1;
+                      return (
+                        <li key={label} className={`rounded-xl border p-3 text-center text-xs leading-6 ${complete ? "border-elasi-gold/40 bg-elasi-ivory text-elasi-green" : "border-elasi-green/10 text-elasi-muted"}`}>
+                          <span aria-hidden="true" className="mb-1 block text-base">{complete ? "✓" : "○"}</span>
+                          {label}
+                        </li>
+                      );
+                    })}
+                  </ol>
+                </div>
+              ) : null}
+              {displayOrder.shipment && (displayOrder.shipment.tracking_code || displayOrder.shipment.shipped_at || displayOrder.shipment.delivered_at) ? (
                 <div className="mt-5 rounded-xl border border-elasi-green/10 bg-elasi-ivory p-4">
                   <p className="flex items-center gap-2 font-semibold text-elasi-green"><PackageCheck size={18} /> اطلاعات مرسوله</p>
                   <p className="mt-2 text-sm text-elasi-muted">حمل‌کننده: {displayOrder.shipment.carrier || "ثبت نشده"}</p>
-                  <p className="mt-2 break-all text-sm text-elasi-green">کد رهگیری: <bdi dir="ltr">{displayOrder.shipment.tracking_code}</bdi></p>
+                  {displayOrder.shipment.tracking_code ? (
+                    <p className="mt-2 break-all text-sm text-elasi-green">کد رهگیری: <bdi dir="ltr">{displayOrder.shipment.tracking_code}</bdi></p>
+                  ) : (
+                    <p className="mt-2 text-sm text-elasi-muted">کد رهگیری هنوز ثبت نشده است.</p>
+                  )}
+                  {displayOrder.shipment.shipped_at ? (
+                    <p className="mt-2 text-sm text-elasi-muted">تاریخ ارسال: {orderDate(displayOrder.shipment.shipped_at)}</p>
+                  ) : null}
+                  {displayOrder.shipment.delivered_at ? (
+                    <p className="mt-2 text-sm text-elasi-muted">تاریخ تحویل: {orderDate(displayOrder.shipment.delivered_at)}</p>
+                  ) : null}
                 </div>
               ) : null}
             </section>

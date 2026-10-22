@@ -28,3 +28,20 @@ export function orderDate(value: string): string {
         day: "numeric",
       }).format(parsed);
 }
+
+
+/** Display progress only for confirmed fulfillment states. */
+export function orderFulfillmentStep(status: OrderStatus): number {
+  switch (status) {
+    case "paid":
+      return 1;
+    case "processing":
+      return 2;
+    case "shipped":
+      return 3;
+    case "delivered":
+      return 4;
+    default:
+      return 0;
+  }
+}

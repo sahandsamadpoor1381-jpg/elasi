@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { orderDate, orderStatusLabel, orderToman } from '../src/lib/order-presentation.ts';
+import { orderDate, orderFulfillmentStep, orderStatusLabel, orderToman } from '../src/lib/order-presentation.ts';
 
 test('order states are distinct and never imply payment before verification', () => {
   assert.equal(orderStatusLabel('pending_payment'), 'در انتظار پرداخت');
@@ -19,4 +19,15 @@ test('Rial order prices are displayed as Toman exactly once', () => {
 
 test('malformed order date produces a safe human label', () => {
   assert.equal(orderDate('not-a-date'), 'تاریخ نامشخص');
+});
+
+
+test('fulfillment timeline never displays unpaid or cancelled orders as shipped', () => {
+  assert.equal(orderFulfillmentStep('pending_payment'), 0);
+  assert.equal(orderFulfillmentStep('cancelled'), 0);
+  assert.equal(orderFulfillmentStep('expired'), 0);
+  assert.equal(orderFulfillmentStep('paid'), 1);
+  assert.equal(orderFulfillmentStep('processing'), 2);
+  assert.equal(orderFulfillmentStep('shipped'), 3);
+  assert.equal(orderFulfillmentStep('delivered'), 4);
 });
