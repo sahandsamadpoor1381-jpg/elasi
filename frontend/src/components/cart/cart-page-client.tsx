@@ -307,6 +307,10 @@ export function CartPageClient() {
     localError ??
     providerError;
 
+  const hasInsufficientStock = cart.items.some(
+    (item) => item.quantity > item.available,
+  );
+
 
   return (
     <section className="elasi-section">
@@ -524,6 +528,13 @@ export function CartPageClient() {
                         </div>
 
 
+                        {item.quantity > item.available ? (
+                          <p role="alert" className="mt-4 text-sm text-elasi-danger">
+                            تعداد انتخاب‌شده بیشتر از موجودی فعلی است (موجودی: {formatPersianNumber(item.available)}).
+                            {item.available === 0 ? " این کالا را از سبد حذف کنید." : " تعداد را کاهش دهید."}
+                          </p>
+                        ) : null}
+
                         <div
                           className="
                             mt-5
@@ -720,17 +731,21 @@ export function CartPageClient() {
             </div>
 
 
-            <Link
-              href="/checkout"
-              className="
-                elasi-button
-                elasi-button--primary
-                mt-7
-                w-full
-              "
-            >
-              ادامه فرایند خرید
-            </Link>
+            {hasInsufficientStock ? (
+              <div role="alert" className="mt-6 rounded-[16px] bg-elasi-danger/[0.05] px-4 py-3 text-sm text-elasi-danger">
+                موجودی یک یا چند محصول کافی نیست. ابتدا تعداد را اصلاح کنید یا محصول ناموجود را حذف کنید.
+              </div>
+            ) : null}
+
+            {hasInsufficientStock ? (
+              <button type="button" disabled className="elasi-button elasi-button--primary mt-7 w-full cursor-not-allowed opacity-50">
+                ادامه فرایند خرید
+              </button>
+            ) : (
+              <Link href="/checkout" className="elasi-button elasi-button--primary mt-7 w-full">
+                ادامه فرایند خرید
+              </Link>
+            )}
 
 
             <Link

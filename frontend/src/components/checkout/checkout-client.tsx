@@ -512,12 +512,17 @@ export function CheckoutClient() {
     );
 
 
+  const hasInsufficientStock = cart?.items.some(
+    (item) => item.quantity > item.available,
+  ) ?? false;
+
   const canSubmit =
     Boolean(
       user &&
         cart &&
         cart.items.length >
           0 &&
+        !hasInsufficientStock &&
         !isSubmitting,
     );
 
@@ -825,6 +830,11 @@ export function CheckoutClient() {
       return;
     }
 
+
+    if (hasInsufficientStock) {
+      setSubmitError("موجودی برخی کالاها کافی نیست. ابتدا تعداد آن‌ها را در سبد خرید اصلاح کنید.");
+      return;
+    }
 
     if (
       !validateForm()
@@ -1620,6 +1630,12 @@ export function CheckoutClient() {
               </div>
             </div>
 
+
+            {hasInsufficientStock ? (
+              <p role="alert" className="mt-5 text-sm leading-7 text-elasi-danger">
+                موجودی برخی محصولات کافی نیست. برای اصلاح تعداد به سبد خرید برگردید.
+              </p>
+            ) : null}
 
             {submitError ? (
               <div

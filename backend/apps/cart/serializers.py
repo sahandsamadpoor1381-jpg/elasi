@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
+from apps.catalog.models import Product
+
 from .models import Cart, CartItem
 
 
@@ -99,6 +101,11 @@ class CartItemSerializer(
         self,
         obj: CartItem,
     ) -> int:
+        if (
+            obj.variant.product.status != Product.Status.ACTIVE
+            or not obj.variant.product.category.is_active
+        ):
+            return 0
         return obj.variant.get_available()
 
     def get_image(

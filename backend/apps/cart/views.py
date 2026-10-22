@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from rest_framework import status
@@ -18,6 +19,7 @@ from .serializers import (
 from .services import (
     CartServiceError,
     add_item_to_cart,
+    claim_guest_cart_for_user,
     remove_cart_item,
     set_cart_item_quantity,
 )
@@ -29,6 +31,7 @@ def get_cart_queryset():
         .select_related("user")
         .prefetch_related(
             "items__variant__product__images",
+            "items__variant__product__category",
             "items__variant__inventory",
         )
     )
@@ -46,12 +49,10 @@ def get_request_cart(
       even when the token is known). Foreign carts raise 404 so
       token leaks reveal nothing.
     - An unbound guest cart is claimed by the first authenticated
-      user that touches it. This preserves guest carts across the
-      OTP login flow (the token lives in browser storage and the
-      cart becomes the user's cart on the next request). The claim
-      runs inside a transaction under a row lock and re-checks the
-      ownership state, so two users racing for the same token can
-      never both claim it or overwrite each other's ownership.
+      user that touches it. If an active account cart already exists,
+      guest items are merged into it and the canonical account token
+      is returned. Claims run under row locks so guest tokens cannot
+      be claimed by two different users or silently overwrite a cart.
     - Anonymous requests against unbound carts keep the original
       capability-token behavior with no regression.
     """
@@ -78,41 +79,12 @@ def get_request_cart(
         return cart
 
     if request.user.is_authenticated:
-        with transaction.atomic():
-            locked_cart = (
-                Cart.objects
-                .select_for_update()
-                .get(
-                    pk=cart.pk,
-                )
-            )
-
-            if (
-                locked_cart.status
-                != Cart.Status.ACTIVE
-            ) or (
-                locked_cart.user_id is not None
-                and locked_cart.user_id != request.user.pk
-            ):
-                # A concurrent request claimed or converted the
-                # cart between our read and the lock. Ownership
-                # already belongs to someone else (or the cart is
-                # gone) — never overwrite it.
-                raise NotFound(
-                    "Cart was not found.",
-                )
-
-            if locked_cart.user_id is None:
-                locked_cart.user = request.user
-
-                locked_cart.save(
-                    update_fields=(
-                        "user",
-                        "updated_at",
-                    ),
-                )
-
-            return locked_cart
+        claimed = claim_guest_cart_for_user(
+            cart_id=cart.pk,
+            user=request.user,
+        )
+        # Merging can change both the cart token and its items.
+        return get_cart_queryset().get(pk=claimed.pk)
 
     return cart
 
@@ -156,39 +128,28 @@ class CartAPIView(APIView):
         """
 
         if request.user.is_authenticated:
-            existing = (
-                Cart.objects
-                .filter(
-                    user=request.user,
-                    status=Cart.Status.ACTIVE,
+            # Serialize account cart creation with guest-cart claims.
+            with transaction.atomic():
+                get_user_model().objects.select_for_update().get(
+                    pk=request.user.pk,
                 )
-                .order_by("-updated_at")
-                .first()
-            )
-
-            if existing is not None:
-                cart = get_cart_queryset().get(
-                    pk=existing.pk,
+                existing = (
+                    Cart.objects.filter(
+                        user=request.user,
+                        status=Cart.Status.ACTIVE,
+                    )
+                    .order_by("-updated_at", "-pk")
+                    .first()
                 )
-
-                return Response(
-                    CartSerializer(
-                        cart,
-                        context={
-                            "request": request,
-                        },
-                    ).data,
-                    status=status.HTTP_200_OK,
-                )
-
-            cart = Cart.objects.create(
-                user=request.user,
-            )
-
+                if existing is None:
+                    cart = Cart.objects.create(user=request.user)
+                    response_status = status.HTTP_201_CREATED
+                else:
+                    cart = existing
+                    response_status = status.HTTP_200_OK
         else:
-            cart = Cart.objects.create(
-                user=None,
-            )
+            cart = Cart.objects.create(user=None)
+            response_status = status.HTTP_201_CREATED
 
         cart = get_cart_queryset().get(
             pk=cart.pk,
@@ -201,7 +162,7 @@ class CartAPIView(APIView):
                     "request": request,
                 },
             ).data,
-            status=status.HTTP_201_CREATED,
+            status=response_status,
         )
 
     def get(
