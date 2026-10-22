@@ -107,6 +107,7 @@ export function ProductPurchasePanel({
 }: ProductPurchasePanelProps) {
   const {
     addItem,
+    isLoading: isCartLoading,
     error: cartError,
   } = useCart();
 
@@ -142,7 +143,8 @@ export function ProductPurchasePanel({
     if (
       !selectedVariant ||
       !isAvailable ||
-      isAddingToCart
+      isAddingToCart ||
+      isCartLoading
     ) {
       return;
     }
@@ -324,12 +326,15 @@ export function ProductPurchasePanel({
           disabled={
             !selectedVariant ||
             !isAvailable ||
-            isAddingToCart
+            isAddingToCart ||
+            isCartLoading
           }
           className="elasi-button elasi-button--primary w-full disabled:cursor-not-allowed disabled:opacity-45"
         >
-          {isAddingToCart
-            ? "در حال افزودن..."
+          {isCartLoading
+            ? "در حال آماده‌سازی سبد خرید..."
+            : isAddingToCart
+              ? "در حال افزودن..."
             : isAvailable
               ? "افزودن به سبد خرید"
               : selectedVariant ? "ناموجود" : "مدل قابل خرید ندارد"}

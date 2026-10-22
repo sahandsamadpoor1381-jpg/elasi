@@ -6,9 +6,18 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
+
+import { useAuth } from "@/components/auth/auth-provider";
+import { customerMessage } from "@/lib/api-client";
+import {
+  cartSessionIdentity,
+  resolveCartForSession,
+  shouldDiscardCartToken,
+} from "@/lib/cart-session";
 
 import {
   CartApiError,
@@ -80,197 +89,144 @@ export function CartProvider({
     );
 
 
-  const [
-    isLoading,
-    setIsLoading,
-  ] =
-    useState(true);
+  const { user, isLoading: isAuthLoading } = useAuth();
+  const identity = cartSessionIdentity(user?.id ?? null);
+  const authenticated = user !== null;
 
+  // Do not expose a previously authenticated cart while a new session loads.
+  const [cartIdentity, setCartIdentity] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const previousIdentity = useRef<string | null>(null);
+  const loadVersion = useRef(0);
+  const pendingCartCreation = useRef<Promise<Cart> | null>(null);
 
-  const [
-    error,
-    setError,
-  ] =
-    useState<string | null>(
-      null,
+  const sessionCart = cartIdentity === identity && !isAuthLoading
+    ? cart
+    : null;
+  const isLoading = isAuthLoading || cartIdentity !== identity;
+
+  const clearStoredCart = useCallback(() => {
+    // Invalidate in-flight responses (for example a late cart read after
+    // checkout or logout) so they cannot restore a converted cart.
+    loadVersion.current += 1;
+    pendingCartCreation.current = null;
+    window.localStorage.removeItem(CART_TOKEN_STORAGE_KEY);
+    setCart(null);
+    setCartIdentity(identity);
+    setError(null);
+  }, [identity]);
+
+  const loadSessionCart = useCallback(() => {
+    return resolveCartForSession(
+      window.localStorage.getItem(CART_TOKEN_STORAGE_KEY),
+      authenticated,
+      {
+        getCart,
+        createCart,
+        isNotFound: (reason) => reason instanceof CartApiError && reason.status === 404,
+      },
     );
+  }, [authenticated]);
 
+  const refreshCart = useCallback(async () => {
+    const version = loadVersion.current;
+    try {
+      const currentCart = await loadSessionCart();
+      if (version !== loadVersion.current) return;
 
-  const clearStoredCart =
-    useCallback(() => {
-      window.localStorage.removeItem(
-        CART_TOKEN_STORAGE_KEY,
-      );
-
-      setCart(null);
+      if (currentCart) {
+        window.localStorage.setItem(CART_TOKEN_STORAGE_KEY, currentCart.token);
+      } else {
+        window.localStorage.removeItem(CART_TOKEN_STORAGE_KEY);
+      }
+      setCart(currentCart);
+      setCartIdentity(identity);
       setError(null);
-    }, []);
-
-
-  const refreshCart =
-    useCallback(async () => {
-      const token =
-        window.localStorage.getItem(
-          CART_TOKEN_STORAGE_KEY,
-        );
-
-
-      if (!token) {
-        setCart(null);
-        setError(null);
-
-        return;
-      }
-
-
-      try {
-        const currentCart =
-          await getCart(token);
-
-        setCart(
-          currentCart,
-        );
-
-        setError(null);
-      } catch (
-        requestError
-      ) {
-        if (
-          requestError instanceof
-            CartApiError &&
-          requestError.status ===
-            404
-        ) {
-          clearStoredCart();
-
-          return;
-        }
-
-
-        setError(
-          requestError instanceof
-            Error
-            ? requestError.message
-            : "خطا در دریافت سبد خرید.",
-        );
-      }
-    }, [
-      clearStoredCart,
-    ]);
-
+    } catch (reason) {
+      if (version !== loadVersion.current) return;
+      setCart(null);
+      setCartIdentity(identity);
+      setError(customerMessage(reason));
+    }
+  }, [loadSessionCart, identity]);
 
   useEffect(() => {
-    let isMounted =
-      true;
+    if (isAuthLoading) return;
 
+    const priorIdentity = previousIdentity.current;
+    previousIdentity.current = identity;
+    const version = ++loadVersion.current;
+    pendingCartCreation.current = null;
+    let active = true;
+
+    if (shouldDiscardCartToken(priorIdentity, identity)) {
+      window.localStorage.removeItem(CART_TOKEN_STORAGE_KEY);
+    }
 
     async function restoreCart() {
       try {
-        await refreshCart();
-      } finally {
-        if (
-          isMounted
-        ) {
-          setIsLoading(
-            false,
-          );
+        const nextCart = await loadSessionCart();
+        if (!active || version !== loadVersion.current) return;
+
+        if (nextCart) {
+          window.localStorage.setItem(CART_TOKEN_STORAGE_KEY, nextCart.token);
+        } else {
+          window.localStorage.removeItem(CART_TOKEN_STORAGE_KEY);
         }
+        setCart(nextCart);
+        setCartIdentity(identity);
+        setError(null);
+      } catch (reason) {
+        if (!active || version !== loadVersion.current) return;
+        setCart(null);
+        setCartIdentity(identity);
+        setError(customerMessage(reason));
       }
     }
 
-
     void restoreCart();
+    return () => { active = false; };
+  }, [identity, isAuthLoading, loadSessionCart]);
 
 
-    return () => {
-      isMounted =
-        false;
-    };
-  }, [
-    refreshCart,
-  ]);
+  const ensureCart = useCallback(async (): Promise<Cart> => {
+    if (isLoading) {
+      throw new Error("سبد خرید در حال آماده‌سازی است. دوباره تلاش کنید.");
+    }
 
+    if (sessionCart) return sessionCart;
+    if (pendingCartCreation.current) return pendingCartCreation.current;
 
-  const ensureCart =
-    useCallback(
-      async (): Promise<Cart> => {
-        if (cart) {
-          return cart;
-        }
+    const version = loadVersion.current;
+    const operation = (async () => {
+      const currentCart = await loadSessionCart();
+      if (version !== loadVersion.current) {
+        throw new Error("نشست کاربری تغییر کرده است. دوباره تلاش کنید.");
+      }
 
+      // Guests with no stored cart need exactly one new cart even when
+      // two product actions start before the first create finishes.
+      const nextCart = currentCart ?? await createCart();
+      if (version !== loadVersion.current) {
+        throw new Error("نشست کاربری تغییر کرده است. دوباره تلاش کنید.");
+      }
 
-        const storedToken =
-          window.localStorage.getItem(
-            CART_TOKEN_STORAGE_KEY,
-          );
+      window.localStorage.setItem(CART_TOKEN_STORAGE_KEY, nextCart.token);
+      setCart(nextCart);
+      setCartIdentity(identity);
+      setError(null);
+      return nextCart;
+    })();
 
-
-        if (
-          storedToken
-        ) {
-          try {
-            const existingCart =
-              await getCart(
-                storedToken,
-              );
-
-
-            setCart(
-              existingCart,
-            );
-
-            setError(
-              null,
-            );
-
-
-            return existingCart;
-          } catch (
-            requestError
-          ) {
-            if (
-              !(
-                requestError instanceof
-                  CartApiError &&
-                requestError.status ===
-                  404
-              )
-            ) {
-              throw requestError;
-            }
-
-
-            clearStoredCart();
-          }
-        }
-
-
-        const newCart =
-          await createCart();
-
-
-        window.localStorage.setItem(
-          CART_TOKEN_STORAGE_KEY,
-          newCart.token,
-        );
-
-
-        setCart(
-          newCart,
-        );
-
-        setError(
-          null,
-        );
-
-
-        return newCart;
-      },
-      [
-        cart,
-        clearStoredCart,
-      ],
-    );
+    pendingCartCreation.current = operation;
+    try {
+      return await operation;
+    } finally {
+      if (pendingCartCreation.current === operation) {
+        pendingCartCreation.current = null;
+      }
+    }
+  }, [sessionCart, isLoading, loadSessionCart, identity]);
 
 
   const addItem =
@@ -282,6 +238,7 @@ export function CartProvider({
         setError(null);
 
 
+        const version = loadVersion.current;
         try {
           const activeCart =
             await ensureCart();
@@ -295,10 +252,11 @@ export function CartProvider({
             );
 
 
-          setCart(
-            updatedCart,
-          );
-
+          if (version !== loadVersion.current) {
+            throw new Error("نشست کاربری تغییر کرده است. دوباره تلاش کنید.");
+          }
+          setCart(updatedCart);
+          setCartIdentity(identity);
 
           return updatedCart;
         } catch (
@@ -319,16 +277,16 @@ export function CartProvider({
                 : "افزودن محصول به سبد خرید انجام نشد.";
 
 
-          setError(
-            message,
-          );
-
+          if (version === loadVersion.current) {
+            setError(message);
+          }
 
           throw requestError;
         }
       },
       [
         ensureCart,
+        identity,
       ],
     );
 
@@ -339,29 +297,28 @@ export function CartProvider({
         itemId: number,
         quantity: number,
       ): Promise<Cart> => {
-        if (!cart) {
-          throw new Error(
-            "Cart is not available.",
-          );
+        if (!sessionCart || isLoading) {
+          throw new Error("سبد خرید در دسترس نیست.");
         }
 
-
+        const version = loadVersion.current;
         setError(null);
 
 
         try {
           const updatedCart =
             await updateCartItem(
-              cart.token,
+              sessionCart.token,
               itemId,
               quantity,
             );
 
 
-          setCart(
-            updatedCart,
-          );
-
+          if (version !== loadVersion.current) {
+            throw new Error("نشست کاربری تغییر کرده است. دوباره تلاش کنید.");
+          }
+          setCart(updatedCart);
+          setCartIdentity(identity);
 
           return updatedCart;
         } catch (
@@ -382,17 +339,14 @@ export function CartProvider({
                 : "تغییر تعداد محصول انجام نشد.";
 
 
-          setError(
-            message,
-          );
-
+          if (version === loadVersion.current) {
+            setError(message);
+          }
 
           throw requestError;
         }
       },
-      [
-        cart,
-      ],
+      [sessionCart, isLoading, identity],
     );
 
 
@@ -401,21 +355,22 @@ export function CartProvider({
       async (
         itemId: number,
       ): Promise<void> => {
-        if (!cart) {
+        if (!sessionCart || isLoading) {
           return;
         }
 
-
+        const version = loadVersion.current;
         setError(null);
 
 
         try {
           await deleteCartItem(
-            cart.token,
+            sessionCart.token,
             itemId,
           );
 
 
+          if (version !== loadVersion.current) return;
           await refreshCart();
         } catch (
           requestError
@@ -427,29 +382,25 @@ export function CartProvider({
               : "حذف محصول از سبد خرید انجام نشد.";
 
 
-          setError(
-            message,
-          );
-
+          if (version === loadVersion.current) {
+            setError(message);
+          }
 
           throw requestError;
         }
       },
-      [
-        cart,
-        refreshCart,
-      ],
+      [sessionCart, isLoading, refreshCart],
     );
 
 
   const value =
     useMemo<CartContextValue>(
       () => ({
-        cart,
+        cart: sessionCart,
 
         isLoading,
 
-        error,
+        error: isLoading ? null : error,
 
         addItem,
 
@@ -463,7 +414,7 @@ export function CartProvider({
           clearStoredCart,
       }),
       [
-        cart,
+        sessionCart,
         isLoading,
         error,
         addItem,

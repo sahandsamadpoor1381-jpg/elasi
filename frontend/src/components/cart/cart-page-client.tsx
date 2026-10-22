@@ -108,6 +108,8 @@ export function CartPageClient() {
     updateItemQuantity,
 
     removeItem,
+
+    refreshCart,
   } = useCart();
 
 
@@ -267,14 +269,26 @@ export function CartPageClient() {
             </p>
 
             <h1 className="mt-4 text-elasi-green">
-              سبد خرید شما خالی است
+              {providerError ? "دریافت سبد خرید ممکن نشد" : "سبد خرید شما خالی است"}
             </h1>
 
-            <p className="mx-auto mt-5 max-w-lg text-body text-elasi-muted">
-              هنوز محصولی به سبد خرید اضافه نکرده‌اید.
-              مجموعه ELASI را ببینید و انتخاب
-              خودتان را پیدا کنید.
-            </p>
+            {providerError ? (
+              <div role="alert" className="mt-5 text-sm text-elasi-danger">
+                <p>{providerError}</p>
+                <button
+                  type="button"
+                  onClick={() => void refreshCart()}
+                  className="mt-3 underline underline-offset-4"
+                >
+                  تلاش مجدد برای دریافت سبد
+                </button>
+              </div>
+            ) : (
+              <p className="mx-auto mt-5 max-w-lg text-body text-elasi-muted">
+                هنوز محصولی به سبد خرید اضافه نکرده‌اید.
+                مجموعه ELASI را ببینید و انتخاب خودتان را پیدا کنید.
+              </p>
+            )}
 
             <Link
               href="/#collection"
