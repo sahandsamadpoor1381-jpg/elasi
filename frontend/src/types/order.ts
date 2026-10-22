@@ -48,7 +48,15 @@ export type OrderItem = {
 };
 
 
+export type OrderShipment = {
+  carrier: string;
+  tracking_code: string;
+  shipped_at: string | null;
+  delivered_at: string | null;
+};
+
 export type Order = {
+  shipment?: OrderShipment | null;
   public_id: string;
 
   status: OrderStatus;

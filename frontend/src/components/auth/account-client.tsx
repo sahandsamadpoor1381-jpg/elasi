@@ -5,12 +5,14 @@ import {
   LoaderCircle,
   LogOut,
   Mail,
+  Package,
   Phone,
   ShieldCheck,
   UserRound,
 } from "lucide-react";
 
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 import {
   useEffect,
@@ -870,6 +872,14 @@ export function AccountClient() {
             </div>
           </div>
 
+
+          <Link
+            href="/account/orders"
+            className="mt-6 flex min-h-14 items-center justify-between gap-4 rounded-[1.4rem] border border-elasi-border-strong bg-elasi-ivory px-5 text-sm font-medium text-elasi-green transition-colors hover:border-elasi-gold-text hover:bg-white"
+          >
+            <span>سفارش‌ها و رهگیری من</span>
+            <Package size={20} strokeWidth={1.5} aria-hidden="true" />
+          </Link>
 
           {/* =================================================
               LOGOUT

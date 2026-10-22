@@ -1038,10 +1038,10 @@ export function CheckoutClient() {
                 </Link>
 
                 <Link
-                  href="/account"
+                  href={`/account/orders/${completedOrder.public_id}`}
                   className="elasi-button elasi-button--secondary"
                 >
-                  حساب کاربری
+                  مشاهده جزئیات سفارش
                 </Link>
               </div>
             </div>
