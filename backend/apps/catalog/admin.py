@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 from django.contrib import admin
+from django.utils.html import format_html
 
 from .admin_forms import (
     ProductImageAdminForm,
@@ -65,7 +66,9 @@ class CollectionAdmin(admin.ModelAdmin):
 class ProductVariantInline(admin.TabularInline):
     model = ProductVariant
     form = ProductVariantAdminForm
-    extra = 0
+    extra = 1
+    verbose_name = "مشخصات و قیمت یک مدل محصول"
+    verbose_name_plural = "مدل‌ها، سایزها و قیمت‌ها (Variant)"
 
     fields = (
         "sku",
@@ -83,19 +86,33 @@ class ProductVariantInline(admin.TabularInline):
 class ProductImageInline(admin.TabularInline):
     model = ProductImage
     formset = ProductImageInlineFormSet
-    extra = 0
+    extra = 3
+    verbose_name = "تصویر محصول"
+    verbose_name_plural = "گالری تصاویر (فقط یک تصویر اصلی)"
 
     fields = (
         "image",
         "alt_text",
         "sort_order",
         "is_primary",
+        "preview",
     )
+    readonly_fields = ("preview",)
+
+    @admin.display(description="پیش‌نمایش")
+    def preview(self, obj):
+        if not obj.pk or not obj.image:
+            return "پس از ذخیره تصویر نمایش داده می‌شود"
+        return format_html(
+            '<img src="{}" alt="" style="height:64px;width:64px;object-fit:cover;border-radius:8px">',
+            obj.image.url,
+        )
 
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     list_display = (
+        "thumbnail",
         "name",
         "category",
         "gender",
@@ -132,10 +149,37 @@ class ProductAdmin(admin.ModelAdmin):
         "updated_at",
     )
 
+    fieldsets = (
+        ("اطلاعات محصول", {"fields": (
+            "name", "slug", "category", "collections", "gender",
+            "short_description", "description",
+        )}),
+        ("نمایش در فروشگاه", {"fields": (
+            "status", "is_featured", "allow_custom_size",
+        ), "description": "ابتدا پیش‌نویس بسازید؛ پس از ثبت مدل، تصویر و موجودی واقعی، محصول را فعال کنید."}),
+        ("زمان ثبت", {"fields": ("created_at", "updated_at"), "classes": ("collapse",)}),
+    )
+
     inlines = (
         ProductVariantInline,
         ProductImageInline,
     )
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).prefetch_related("images")
+
+    @admin.display(description="تصویر اصلی")
+    def thumbnail(self, obj):
+        images = list(obj.images.all())
+        image = next((item for item in images if item.is_primary), None)
+        if image is None and images:
+            image = images[0]
+        if image is None or not image.image:
+            return "—"
+        return format_html(
+            '<img src="{}" alt="" style="height:46px;width:46px;object-fit:cover;border-radius:8px">',
+            image.image.url,
+        )
 
 
 @admin.register(ProductVariant)

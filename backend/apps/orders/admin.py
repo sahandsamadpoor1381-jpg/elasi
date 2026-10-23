@@ -156,6 +156,8 @@ class OrderAdmin(admin.ModelAdmin):
         "shipment_actions",
     )
 
+    # Payment, monetary, and lifecycle data are immutable here.
+    # Staff can still correct recipient, shipping method and address details.
     readonly_fields = (
         "public_id",
         "user",
@@ -296,6 +298,11 @@ class OrderAdmin(admin.ModelAdmin):
                 form=form, action_label="تأیید تحویل",
             ),
         )
+
+    def has_add_permission(self, request) -> bool:
+        # Orders must originate from authenticated, stock-validating checkout.
+        # Django Admin must never manufacture pending/paid orders directly.
+        return False
 
     def has_delete_permission(
         self,

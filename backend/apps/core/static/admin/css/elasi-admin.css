@@ -24,9 +24,9 @@ body { font-family: Tahoma, Arial, sans-serif; }
 .elasi-admin-brand small { display: block; margin-top: 2px; font-size: 11px; color: #e2d7c5; }
 .elasi-dashboard { margin: 0 0 28px; }
 .elasi-dashboard__intro { padding: 8px 0 20px; }
-.elasi-dashboard__eyebrow { color: #73551e; letter-spacing: .13em; font: 600 11px Arial, sans-serif; }
-.elasi-dashboard__intro h2 { margin: 9px 0; font-size: clamp(21px, 2.5vw, 30px); color: #152a24; }
-.elasi-dashboard__intro p, .elasi-dashboard__restricted { color: #5b645c; line-height: 1.9; }
+.elasi-dashboard__eyebrow { color: var(--body-fg); opacity: .8; letter-spacing: .13em; font: 600 11px Arial, sans-serif; }
+.elasi-dashboard__intro h2 { margin: 9px 0; font-size: clamp(21px, 2.5vw, 30px); color: var(--body-fg); }
+.elasi-dashboard__intro p, .elasi-dashboard__restricted { color: var(--body-quiet-color); line-height: 1.9; }
 .elasi-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 205px), 1fr)); gap: 14px; }
 .elasi-metric { display: flex; flex-direction: column; min-height: 154px; padding: 22px; border: 1px solid #ddd9ce; border-radius: 16px; background: #fff; color: #152a24 !important; text-decoration: none !important; box-shadow: 0 12px 30px #152a2408; }
 .elasi-metric:hover, .elasi-metric:focus-visible { border-color: #73551e; box-shadow: 0 12px 30px #152a2418; }
@@ -41,3 +41,28 @@ body { font-family: Tahoma, Arial, sans-serif; }
 .elasi-recent bdi { unicode-bidi: isolate; }
 :focus-visible { outline: 2px solid #73551e; outline-offset: 3px; }
 @media (max-width: 767px) { #header { flex-wrap: wrap; gap: 16px; } .elasi-dashboard__intro { padding-top: 18px; } .elasi-metric { min-height: 135px; padding: 17px; } }
+
+/* The merchant dashboard is readable in Django's light, dark and auto themes.
+   Django changes its CSS custom properties with the active admin theme; do
+   not hardcode dark-green type over a dark admin canvas. */
+#content h1, #content h2 { color: var(--body-fg); }
+.elasi-dashboard__intro { max-width: 920px; }
+.elasi-dashboard__intro p { max-width: 72ch; }
+.elasi-metric__value, .elasi-metric__label, .elasi-metric__action { direction: rtl; }
+.elasi-metrics { max-width: 1120px; }
+
+/* Make long stock/variant inline forms usable without breaking narrow screens. */
+.inline-group { max-width: 100%; overflow-x: auto; }
+.inline-group .tabular { min-width: min(100%, 760px); }
+#content .module h2, #content fieldset.module h2 { line-height: 1.8; }
+#content input[type="text"], #content input[type="number"], #content textarea {
+  max-width: 100%; box-sizing: border-box;
+}
+#content .form-row { line-height: 1.8; }
+#user-tools, #user-tools a { unicode-bidi: isolate; }
+
+@media (max-width: 767px) {
+  #content { min-width: 0; }
+  .elasi-metrics { grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr)); }
+  .elasi-metric { min-height: 128px; }
+}
