@@ -1,4 +1,6 @@
 import Image from "next/image";
+import { getHomePageContent } from "@/lib/homepage-api";
+import { mediaPath } from "@/lib/media";
 
 import Link from "next/link";
 
@@ -50,12 +52,13 @@ function getHeroProduct(
 
 
 export default async function Home() {
-  const [productPage, categories] = await Promise.all([
+  const [productPage, categories, homeContent] = await Promise.all([
     getProductPage({
       page_size: 24,
       ordering: "featured",
     }),
     getCategories(),
+    getHomePageContent(),
   ]);
 
   const products = productPage.results;
@@ -66,6 +69,8 @@ export default async function Home() {
     heroProduct?.images.find(
       (image) => image.is_primary,
     ) ?? heroProduct?.images[0];
+
+  const homeHeroImage = mediaPath(homeContent?.hero_image);
 
   const featuredProducts = products.filter(
     (product) => product.is_featured,
@@ -87,21 +92,15 @@ export default async function Home() {
             {/* Hero Copy */}
             <div className="order-2 flex flex-col justify-center py-6 text-right lg:order-1 lg:py-12">
               <p className="text-label font-medium tracking-[0.2em] text-elasi-gold-text">
-                ELASI JEWELRY
+                {homeContent?.hero_eyebrow ?? "ELASI JEWELRY"}
               </p>
 
-              <h1 className="mt-5 max-w-2xl text-display text-elasi-green">
-                زیبایی‌ای که
-                <br />
-                با شما ماندگار
-                <br className="hidden sm:block" />
-                می‌شود.
+              <h1 className="mt-5 max-w-2xl whitespace-pre-line text-display text-elasi-green">
+                {homeContent?.hero_heading ?? "زیبایی‌ای که\nبا شما ماندگار\nمی‌شود."}
               </h1>
 
               <p className="mt-7 max-w-xl text-body-lg text-elasi-muted">
-                مجموعه‌ای از جواهرات طلا و نقره با نگاهی
-                مدرن، ظریف و ماندگار؛ برای انتخاب‌هایی که
-                بخشی از استایل شخصی شما می‌شوند.
+                {homeContent?.hero_description ?? "مجموعه‌ای از جواهرات طلا و نقره با نگاهی مدرن، ظریف و ماندگار؛ برای انتخاب‌هایی که بخشی از استایل شخصی شما می‌شوند."}
               </p>
 
               <div className="mt-9 flex flex-col gap-3 sm:flex-row">
@@ -109,14 +108,14 @@ export default async function Home() {
                   href="/shop"
                   className="elasi-button elasi-button--primary"
                 >
-                  مشاهده مجموعه
+                  {homeContent?.hero_primary_label ?? "مشاهده مجموعه"}
                 </Link>
 
                 <Link
                   href="/about"
                   className="elasi-button elasi-button--secondary"
                 >
-                  داستان ELASI
+                  {homeContent?.hero_secondary_label ?? "داستان ELASI"}
                 </Link>
               </div>
 
@@ -157,7 +156,19 @@ export default async function Home() {
             {/* Hero Visual */}
             <div className="order-1 lg:order-2">
               <div className="relative min-h-[420px] overflow-hidden rounded-[36px] bg-white sm:min-h-[520px] lg:h-full">
-                {heroImage && heroProduct ? (
+                {homeHeroImage ? (
+                  <>
+                    <Image
+                      src={homeHeroImage}
+                      alt={homeContent?.hero_image_alt ?? ""}
+                      fill
+                      priority
+                      sizes="(max-width: 1024px) 100vw, 54vw"
+                      className="object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/15 via-transparent to-transparent" />
+                  </>
+                ) : heroImage && heroProduct ? (
                   <>
                     <Image
                       src={heroImage.image}
@@ -332,18 +343,13 @@ export default async function Home() {
                   color: "var(--elasi-white)",
                 }}
               >
-                جواهر، فقط یک انتخاب نیست؛ بخشی از روایت
-                شماست.
+                {homeContent?.story_heading ?? "جواهر، فقط یک انتخاب نیست؛ بخشی از روایت شماست."}
               </h2>
             </div>
 
             <div className="max-w-2xl">
               <p className="text-body-lg text-white/75">
-                ELASI با تمرکز بر فرم‌های ظریف، ترکیب‌های
-                ماندگار و زیبایی بدون اغراق شکل گرفته است.
-                هدف ما ساخت تجربه‌ای است که در آن انتخاب
-                جواهر، ساده، شخصی و نزدیک به سبک زندگی شما
-                باشد.
+                {homeContent?.story_description ?? "ELASI با تمرکز بر فرم‌های ظریف، ترکیب‌های ماندگار و زیبایی بدون اغراق شکل گرفته است. هدف ما ساخت تجربه‌ای است که در آن انتخاب جواهر، ساده، شخصی و نزدیک به سبک زندگی شما باشد."}
               </p>
 
               <div className="mt-8 h-px w-20 bg-elasi-gold" />
@@ -370,13 +376,11 @@ export default async function Home() {
               </p>
 
               <h2 className="mt-4 text-elasi-green">
-                انتخابی که به سبک شما نزدیک‌تر است
+                {homeContent?.closing_heading ?? "انتخابی که به سبک شما نزدیک‌تر است"}
               </h2>
 
               <p className="mx-auto mt-5 max-w-2xl text-body text-elasi-muted">
-                مجموعه ELASI را ببینید و میان فرم‌ها،
-                متریال‌ها و جزئیات مختلف، انتخاب مناسب خودتان
-                را پیدا کنید.
+                {homeContent?.closing_description ?? "مجموعه ELASI را ببینید و میان فرم‌ها، متریال‌ها و جزئیات مختلف، انتخاب مناسب خودتان را پیدا کنید."}
               </p>
 
               <Link
