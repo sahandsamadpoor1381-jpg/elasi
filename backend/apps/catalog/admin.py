@@ -1,6 +1,8 @@
 from decimal import Decimal
 
 from django.contrib import admin
+from django.core.exceptions import ObjectDoesNotExist
+from django.urls import reverse
 from django.utils.html import format_html
 
 from .admin_forms import (
@@ -16,6 +18,28 @@ from .models import (
     ProductImage,
     ProductVariant,
 )
+
+
+def _variant_inventory_link(variant):
+    """Navigation only: stock changes must go through audited Inventory Admin."""
+    if not variant.pk:
+        return "ابتدا مدل و محصول را ذخیره کنید"
+
+    try:
+        balance = variant.inventory
+    except ObjectDoesNotExist:
+        url = reverse("admin:inventory_inventorybalance_add")
+        return format_html(
+            '<a href="{}?variant={}">ثبت موجودی</a>', url, variant.pk,
+        )
+
+    url = reverse(
+        "admin:inventory_inventorybalance_change", args=(balance.pk,),
+    )
+    return format_html(
+        '<a href="{}">{} قابل فروش / {} رزرو</a>',
+        url, balance.available, balance.reserved,
+    )
 
 
 @admin.register(Category)
@@ -63,40 +87,42 @@ class CollectionAdmin(admin.ModelAdmin):
     }
 
 
-class ProductVariantInline(admin.TabularInline):
+class ProductVariantInline(admin.StackedInline):
     model = ProductVariant
     form = ProductVariantAdminForm
     extra = 1
     verbose_name = "مشخصات و قیمت یک مدل محصول"
     verbose_name_plural = "مدل‌ها، سایزها و قیمت‌ها (Variant)"
 
-    fields = (
-        "sku",
-        "material",
-        "karat",
-        "purity",
-        "size",
-        "weight_grams",
-        "price_toman",
-        "compare_at_price_toman",
-        "is_active",
-    )
+    # Present one variant per readable card; a 10-column tabular inline
+    # is unusable in RTL and hides the inventory shortcut off-screen.
+    fieldsets = ((None, {"fields": (
+        ("sku", "material", "karat"),
+        ("purity", "size", "weight_grams"),
+        ("price_toman", "compare_at_price_toman"),
+        ("is_active", "inventory_shortcut"),
+    )}),)
+    readonly_fields = ("inventory_shortcut",)
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related("inventory")
+
+    @admin.display(description="موجودی و رزرو")
+    def inventory_shortcut(self, obj):
+        return _variant_inventory_link(obj)
 
 
-class ProductImageInline(admin.TabularInline):
+class ProductImageInline(admin.StackedInline):
     model = ProductImage
     formset = ProductImageInlineFormSet
     extra = 3
     verbose_name = "تصویر محصول"
     verbose_name_plural = "گالری تصاویر (فقط یک تصویر اصلی)"
 
-    fields = (
-        "image",
-        "alt_text",
-        "sort_order",
-        "is_primary",
-        "preview",
-    )
+    fieldsets = ((None, {"fields": (
+        ("image", "preview"),
+        ("alt_text", "sort_order", "is_primary"),
+    )}),)
     readonly_fields = ("preview",)
 
     @admin.display(description="پیش‌نمایش")
@@ -115,12 +141,15 @@ class ProductAdmin(admin.ModelAdmin):
         "thumbnail",
         "name",
         "category",
+        "stock_summary",
         "gender",
         "status",
         "is_featured",
         "allow_custom_size",
         "updated_at",
     )
+
+    list_select_related = ("category",)
 
     list_filter = (
         "status",
@@ -140,9 +169,9 @@ class ProductAdmin(admin.ModelAdmin):
         "slug": ("name",),
     }
 
-    filter_horizontal = (
-        "collections",
-    )
+    # The old two-pane filter_horizontal widget consumed half the page in
+    # RTL; searchable multi-select uses the existing CollectionAdmin lookup.
+    autocomplete_fields = ("collections",)
 
     readonly_fields = (
         "created_at",
@@ -166,7 +195,22 @@ class ProductAdmin(admin.ModelAdmin):
     )
 
     def get_queryset(self, request):
-        return super().get_queryset(request).prefetch_related("images")
+        return super().get_queryset(request).prefetch_related(
+            "images", "variants__inventory",
+        )
+
+    @admin.display(description="مدل / موجودی قابل فروش")
+    def stock_summary(self, obj):
+        variants = list(obj.variants.all())
+        available = 0
+        for variant in variants:
+            if not variant.is_active:
+                continue
+            try:
+                available += max(0, variant.inventory.available)
+            except ObjectDoesNotExist:
+                pass
+        return f"{len(variants)} مدل | {available} موجود"
 
     @admin.display(description="تصویر اصلی")
     def thumbnail(self, obj):
@@ -199,6 +243,7 @@ class ProductVariantAdmin(admin.ModelAdmin):
         "karat",
         "size",
         "price_toman_display",
+        "inventory_shortcut",
         "is_active",
     )
 
@@ -222,6 +267,13 @@ class ProductVariantAdmin(admin.ModelAdmin):
         "created_at",
         "updated_at",
     )
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related("product", "inventory")
+
+    @admin.display(description="موجودی و رزرو")
+    def inventory_shortcut(self, obj):
+        return _variant_inventory_link(obj)
 
     @admin.display(description="قیمت (تومان)")
     def price_toman_display(self, obj):

@@ -66,3 +66,61 @@ body { font-family: Tahoma, Arial, sans-serif; }
   .elasi-metrics { grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr)); }
   .elasi-metric { min-height: 128px; }
 }
+
+/* Delivery 06.2 UI acceptance: readable merchant forms on narrow desktop.
+   Keep other tabular admin inlines scrollable; catalog variants use stacked
+   cards so the stock link and both Toman price fields remain in view. */
+#variants-group, #images-group { max-width: 100%; overflow: visible; }
+#variants-group .inline-related,
+#images-group .inline-related {
+  min-width: 0;
+  margin-block: 12px;
+  padding: 12px 14px 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+}
+#variants-group .inline-related > h3,
+#images-group .inline-related > h3 {
+  margin: -12px -14px 12px;
+  padding: 12px 14px;
+  border-radius: 12px 12px 0 0;
+  line-height: 1.7;
+}
+#variants-group .form-row,
+#images-group .form-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: start;
+  gap: 12px 20px;
+}
+#variants-group .form-row > div,
+#images-group .form-row > div { flex: 1 1 175px; min-width: 0; }
+#variants-group .form-row input,
+#images-group .form-row input,
+#variants-group .form-row select,
+#images-group .form-row select { max-width: 100%; box-sizing: border-box; }
+#variants-group .readonly a { white-space: normal; }
+#variants-group .form-row label,
+#images-group .form-row label { text-align: start; }
+
+/* Django's default floating object toolbar collides with RTL headings.
+   Keep add/history actions in normal flow, not over the page title. */
+#content .object-tools {
+  position: static !important;
+  float: none !important;
+  margin: 0 0 16px !important;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 8px;
+}
+#content .object-tools li { float: none; }
+#content .object-tools a { display: inline-block; }
+
+/* The searchable collections control should not have a forced page width. */
+#content .related-widget-wrapper { max-width: 100%; }
+#content .select2-container { max-width: 100% !important; }
+@media (max-width: 767px) {
+  #variants-group .form-row > div,
+  #images-group .form-row > div { flex-basis: 100%; }
+}

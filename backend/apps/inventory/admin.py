@@ -22,6 +22,17 @@ class InventoryBalanceAdminForm(forms.ModelForm):
             "variant",
             "on_hand",
         )
+        labels = {
+            "variant": "مدل محصول",
+            "on_hand": "موجودی فیزیکی (عدد)",
+        }
+        help_texts = {
+            "on_hand": (
+                "موجودی فیزیکی کل را وارد کنید، نه مقدار افزایش یا کاهش. "
+                "سفارش‌های رزروشده به‌صورت خودکار کم می‌شوند و "
+                "هر تغییر در تاریخچه انبار ثبت می‌شود."
+            ),
+        }
 
     def clean_on_hand(self):
         on_hand = self.cleaned_data["on_hand"]
@@ -77,6 +88,8 @@ class InventoryBalanceAdmin(admin.ModelAdmin):
 
     form = InventoryBalanceAdminForm
 
+    list_select_related = ("variant", "variant__product")
+
     list_display = (
         "variant",
         "on_hand",
@@ -100,6 +113,11 @@ class InventoryBalanceAdmin(admin.ModelAdmin):
         "available_stock",
         "updated_at",
     )
+
+    def has_delete_permission(self, request, obj=None) -> bool:
+        # Deleting a balance would invalidate stock-ledger reconciliation.
+        # Stock must be corrected through the audited adjustment form.
+        return False
 
     def available_stock(self, obj: InventoryBalance) -> int:
         return obj.available
